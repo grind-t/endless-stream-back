@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/grind-t/endless-stream-back/issues"
   },
-  "homepage": "https://github.com/grind-t/endless-stream-back#readme"
+  "homepage": "https://github.com/grind-t/endless-stream-back#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
