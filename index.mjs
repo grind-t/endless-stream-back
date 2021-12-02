@@ -1,11 +1,12 @@
 import "dotenv/config";
-import express, { json } from "express";
+import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import fetch from "node-fetch";
 import { readFileSync } from "fs";
 import { writeFile } from "fs/promises";
 import { RefreshingAuthProvider } from "@twurple/auth";
+import { ApiClient } from "@twurple/api";
 
 const app = express();
 const server = createServer(app);
@@ -25,6 +26,7 @@ const twitchAuthProvider = new RefreshingAuthProvider(
   },
   twitchToken
 );
+const twitchApiClient = new ApiClient({ authProvider: twitchAuthProvider });
 
 app.get("/twitch/auth", async (req, res) => {
   const oauthURL = "https://id.twitch.tv/oauth2";
