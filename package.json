@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/grind-t/endless-stream-back#readme",
   "dependencies": {
+    "@twurple/api": "^5.0.10",
     "@twurple/auth": "^5.0.10",
     "dotenv": "^10.0.0",
     "express": "^5.0.0-alpha.8",
