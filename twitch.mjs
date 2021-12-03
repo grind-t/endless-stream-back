@@ -12,6 +12,7 @@ import {
 import { connect } from "ngrok";
 import { EventSubMiddleware } from "@twurple/eventsub";
 import { ApiClient } from "@twurple/api";
+import { ChatClient } from "@twurple/chat";
 
 const app = express();
 const server = createServer(app);
@@ -39,6 +40,11 @@ const appAuthProvider = new ClientCredentialsAuthProvider(
 );
 const apiClient = new ApiClient({ authProvider: userAuthProvider });
 const user = await apiClient.users.getMe();
+const chatClient = new ChatClient({
+  authProvider: userAuthProvider,
+  channels: [user.name],
+});
+await chatClient.connect();
 const middleware = new EventSubMiddleware({
   apiClient: new ApiClient({ authProvider: appAuthProvider }),
   hostName: url.hostname,
@@ -69,10 +75,16 @@ app.get("/twitch/auth", async (req, res) => {
   }
 });
 
+function onMessage(channel, user, message) {
+  switch (message) {
+    case "!плейлист+":
+      chatClient.say(channel, "муняня");
+      break;
+  }
+}
+
 server.listen(port, async () => {
+  chatClient.onMessage(onMessage);
   await middleware.markAsReady();
-  await middleware.subscribeToStreamOnlineEvents(user.id, () =>
-    console.log("online")
-  );
   console.log(`App listening at http://localhost:${port}`);
 });
