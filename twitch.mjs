@@ -52,7 +52,7 @@ app.get("/twitch/auth", async (req, res) => {
   const redirectURI = `http://localhost:${port}/twitch/auth`;
   const code = req.query.code;
   if (code) {
-    const tokenURL = `${oauthURL}/token?client_id=${twitchClientId}&client_secret=${twitchClientSecret}&code=${code}&grant_type=authorization_code&redirect_uri=${redirectURI}`;
+    const tokenURL = `${oauthURL}/token?client_id=${clientId}&client_secret=${clientSecret}&code=${code}&grant_type=authorization_code&redirect_uri=${redirectURI}`;
     const response = await fetch(tokenURL, { method: "POST" });
     const data = await response.json();
     const token = {
@@ -64,7 +64,7 @@ app.get("/twitch/auth", async (req, res) => {
     };
     res.status(200).json(token);
   } else {
-    const authURL = `${oauthURL}/authorize?client_id=${twitchClientId}&redirect_uri=${redirectURI}&response_type=code&scope=chat:read+chat:edit`;
+    const authURL = `${oauthURL}/authorize?client_id=${clientId}&redirect_uri=${redirectURI}&response_type=code&scope=chat:read+chat:edit`;
     res.redirect(authURL);
   }
 });
