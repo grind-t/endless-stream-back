@@ -6,11 +6,13 @@ import fetch from "node-fetch";
 import { readFileSync } from "fs";
 import { writeFile } from "fs/promises";
 import { RefreshingAuthProvider } from "@twurple/auth";
+import { connect } from "ngrok";
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
 const port = 3000;
+const url = new URL(await connect(port));
 
 const clientId = process.env.TWITCH_CLIENT_ID;
 const clientSecret = process.env.TWITCH_CLIENT_SECRET;
