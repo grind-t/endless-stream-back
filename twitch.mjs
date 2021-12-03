@@ -5,8 +5,13 @@ import { Server } from "socket.io";
 import fetch from "node-fetch";
 import { readFileSync } from "fs";
 import { writeFile } from "fs/promises";
-import { RefreshingAuthProvider } from "@twurple/auth";
+import {
+  ClientCredentialsAuthProvider,
+  RefreshingAuthProvider,
+} from "@twurple/auth";
 import { connect } from "ngrok";
+import { EventSubMiddleware } from "@twurple/eventsub";
+import { ApiClient } from "@twurple/api";
 
 const app = express();
 const server = createServer(app);
@@ -17,7 +22,7 @@ const url = new URL(await connect(port));
 const clientId = process.env.TWITCH_CLIENT_ID;
 const clientSecret = process.env.TWITCH_CLIENT_SECRET;
 const token = JSON.parse(readFileSync("./twitch-token.json", "utf-8"));
-const authProvider = new RefreshingAuthProvider(
+const userAuthProvider = new RefreshingAuthProvider(
   {
     clientId,
     clientSecret,
@@ -28,6 +33,19 @@ const authProvider = new RefreshingAuthProvider(
   },
   token
 );
+const appAuthProvider = new ClientCredentialsAuthProvider(
+  clientId,
+  clientSecret
+);
+const apiClient = new ApiClient({ authProvider: userAuthProvider });
+const user = await apiClient.users.getMe();
+const middleware = new EventSubMiddleware({
+  apiClient: new ApiClient({ authProvider: appAuthProvider }),
+  hostName: url.hostname,
+  pathPrefix: "/twitch/events",
+  secret: process.env.TWITCH_EVENTSUB_SECRET,
+});
+await middleware.apply(app);
 
 app.get("/twitch/auth", async (req, res) => {
   const oauthURL = "https://id.twitch.tv/oauth2";
@@ -51,6 +69,10 @@ app.get("/twitch/auth", async (req, res) => {
   }
 });
 
-server.listen(port, () => {
+server.listen(port, async () => {
+  await middleware.markAsReady();
+  await middleware.subscribeToStreamOnlineEvents(user.id, () =>
+    console.log("online")
+  );
   console.log(`App listening at http://localhost:${port}`);
 });
