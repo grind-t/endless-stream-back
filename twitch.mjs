@@ -6,27 +6,26 @@ import fetch from "node-fetch";
 import { readFileSync } from "fs";
 import { writeFile } from "fs/promises";
 import { RefreshingAuthProvider } from "@twurple/auth";
-import { ApiClient } from "@twurple/api";
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
 const port = 3000;
-const twitchClientId = process.env.TWITCH_CLIENT_ID;
-const twitchClientSecret = process.env.TWITCH_CLIENT_SECRET;
-const twitchToken = JSON.parse(readFileSync("./twitch-token.json", "utf-8"));
-const twitchAuthProvider = new RefreshingAuthProvider(
+
+const clientId = process.env.TWITCH_CLIENT_ID;
+const clientSecret = process.env.TWITCH_CLIENT_SECRET;
+const token = JSON.parse(readFileSync("./twitch-token.json", "utf-8"));
+const authProvider = new RefreshingAuthProvider(
   {
-    clientId: twitchClientId,
-    clientSecret: twitchClientSecret,
+    clientId,
+    clientSecret,
     onRefresh: (token) => {
       const json = JSON.stringify(token, null, 2);
       writeFile("./twitch-token.json", json).catch(console.error);
     },
   },
-  twitchToken
+  token
 );
-const twitchApiClient = new ApiClient({ authProvider: twitchAuthProvider });
 
 app.get("/twitch/auth", async (req, res) => {
   const oauthURL = "https://id.twitch.tv/oauth2";
