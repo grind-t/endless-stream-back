@@ -13,6 +13,7 @@ import { connect } from "ngrok";
 import { EventSubMiddleware } from "@twurple/eventsub";
 import { ApiClient } from "@twurple/api";
 import { ChatClient } from "@twurple/chat";
+import { google } from "googleapis";
 
 const app = express();
 const server = createServer(app);
@@ -40,6 +41,32 @@ app.get("/twitch/auth", async (req, res) => {
     res.status(200).json(token);
   } else {
     const authURL = `${oauthURL}/authorize?client_id=${clientId}&redirect_uri=${redirectURI}&response_type=code&scope=chat:read+chat:edit`;
+    res.redirect(authURL);
+  }
+});
+
+app.get("/youtube/auth", async (req, res) => {
+  const clientId = process.env.YOUTUBE_CLIENT_ID;
+  const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+  const redirectURI = `http://localhost:${port}/youtube/auth`;
+  const oauth2Client = new google.auth.OAuth2(
+    clientId,
+    clientSecret,
+    redirectURI
+  );
+  const code = req.query.code;
+  if (code) {
+    const { tokens } = await oauth2Client.getToken(code);
+    res.status(200).json(tokens);
+  } else {
+    const authURL = oauth2Client.generateAuthUrl({
+      access_type: "offline",
+      scope: [
+        "https://www.googleapis.com/auth/youtube",
+        "https://www.googleapis.com/auth/youtube.readonly",
+        "https://www.googleapis.com/auth/youtube.force-ssl",
+      ],
+    });
     res.redirect(authURL);
   }
 });
