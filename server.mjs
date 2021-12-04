@@ -112,13 +112,32 @@ function getTwitchClient() {
   };
 }
 
+function getYoutubeClient() {
+  const clientId = process.env.YOUTUBE_CLIENT_ID;
+  const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+  const redirectURI = `http://localhost:${port}/youtube/auth`;
+  const token = JSON.parse(readFileSync("./youtube-token.json", "utf-8"));
+  const oauth2Client = new google.auth.OAuth2(
+    clientId,
+    clientSecret,
+    redirectURI
+  );
+  oauth2Client.setCredentials(token);
+  oauth2Client.on("tokens", (token) => {
+    const json = JSON.stringify(token, null, 2);
+    writeFile("./youtube-token.json", json).catch(console.error);
+  });
+  return google.youtube({ version: "v3", auth: oauth2Client });
+}
+
 async function start() {
   const twitch = getTwitchClient();
+  const youtube = getYoutubeClient();
   await twitch.chat.connect();
   await twitch.events.apply(app);
   await new Promise((resolve) => server.listen(port, resolve));
   await twitch.events.markAsReady();
-  return { twitch };
+  return { twitch, youtube };
 }
 
 export { start };
