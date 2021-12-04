@@ -22,15 +22,15 @@ const port = 3000;
 const url = new URL(await connect(port));
 
 app.get("/twitch/auth", async (req, res) => {
-  const clientId = process.env.TWITCH_CLIENT_ID;
-  const clientSecret = process.env.TWITCH_CLIENT_SECRET;
+  const clientId = process.env.TWITCH_CLIENT_ID as string;
+  const clientSecret = process.env.TWITCH_CLIENT_SECRET as string;
   const oauthURL = "https://id.twitch.tv/oauth2";
   const redirectURI = `http://localhost:${port}/twitch/auth`;
-  const code = req.query.code;
+  const code = req.query.code as string;
   if (code) {
     const tokenURL = `${oauthURL}/token?client_id=${clientId}&client_secret=${clientSecret}&code=${code}&grant_type=authorization_code&redirect_uri=${redirectURI}`;
     const response = await fetch(tokenURL, { method: "POST" });
-    const data = await response.json();
+    const data: any = await response.json();
     const token = {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
@@ -46,15 +46,15 @@ app.get("/twitch/auth", async (req, res) => {
 });
 
 app.get("/youtube/auth", async (req, res) => {
-  const clientId = process.env.YOUTUBE_CLIENT_ID;
-  const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+  const clientId = process.env.YOUTUBE_CLIENT_ID as string;
+  const clientSecret = process.env.YOUTUBE_CLIENT_SECRET as string;
   const redirectURI = `http://localhost:${port}/youtube/auth`;
   const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
     redirectURI
   );
-  const code = req.query.code;
+  const code = req.query.code as string;
   if (code) {
     const { tokens } = await oauth2Client.getToken(code);
     res.status(200).json(tokens);
@@ -74,16 +74,16 @@ app.get("/youtube/auth", async (req, res) => {
 function getTwitchClient() {
   const userId = "149690942";
   const userName = "grind_t";
-  const clientId = process.env.TWITCH_CLIENT_ID;
-  const clientSecret = process.env.TWITCH_CLIENT_SECRET;
-  const token = JSON.parse(readFileSync("./twitch-token.json", "utf-8"));
+  const clientId = process.env.TWITCH_CLIENT_ID as string;
+  const clientSecret = process.env.TWITCH_CLIENT_SECRET as string;
+  const token = JSON.parse(readFileSync("data/twitch-token.json", "utf-8"));
   const userAuthProvider = new RefreshingAuthProvider(
     {
       clientId,
       clientSecret,
       onRefresh: (token) => {
         const json = JSON.stringify(token, null, 2);
-        writeFile("./twitch-token.json", json).catch(console.error);
+        writeFile("data/twitch-token.json", json).catch(console.error);
       },
     },
     token
@@ -101,7 +101,7 @@ function getTwitchClient() {
     apiClient: new ApiClient({ authProvider: appAuthProvider }),
     hostName: url.hostname,
     pathPrefix: "/twitch/events",
-    secret: process.env.TWITCH_EVENTSUB_SECRET,
+    secret: process.env.TWITCH_EVENTSUB_SECRET as string,
   });
   return {
     channelId: userId,
@@ -116,7 +116,7 @@ function getYoutubeClient() {
   const clientId = process.env.YOUTUBE_CLIENT_ID;
   const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
   const redirectURI = `http://localhost:${port}/youtube/auth`;
-  const token = JSON.parse(readFileSync("./youtube-token.json", "utf-8"));
+  const token = JSON.parse(readFileSync("data/youtube-token.json", "utf-8"));
   const oauth2Client = new google.auth.OAuth2(
     clientId,
     clientSecret,
@@ -125,7 +125,7 @@ function getYoutubeClient() {
   oauth2Client.setCredentials(token);
   oauth2Client.on("tokens", (token) => {
     const json = JSON.stringify(token, null, 2);
-    writeFile("./youtube-token.json", json).catch(console.error);
+    writeFile("data/youtube-token.json", json).catch(console.error);
   });
   return google.youtube({ version: "v3", auth: oauth2Client });
 }
@@ -135,6 +135,7 @@ async function start() {
   const youtube = getYoutubeClient();
   await twitch.chat.connect();
   await twitch.events.apply(app);
+  // @ts-ignore
   await new Promise((resolve) => server.listen(port, resolve));
   await twitch.events.markAsReady();
   return { twitch, youtube };
