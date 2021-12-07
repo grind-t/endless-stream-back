@@ -1,22 +1,6 @@
 import { start, socket } from "./server.js";
 import { createInterface } from "readline";
-
-interface MediaRequest {
-  user: string;
-  videoId: string;
-}
-
-interface Media {
-  queue: MediaRequest[];
-  maxQueue: number;
-  current: MediaRequest | undefined;
-}
-
-const media: Media = {
-  queue: [],
-  maxQueue: 100,
-  current: undefined,
-};
+import { media } from "./data.js";
 
 const { twitch, youtube } = await start();
 twitch.chat.say(twitch.channel, "чупапи муняня");
@@ -51,7 +35,10 @@ async function handleMessage(
         return;
       }
       media.queue.push({ user, videoId });
-      if (!media.current) media.current = media.queue.shift();
+      if (!media.current) {
+        media.current = media.queue.shift();
+        socket.emit("media/changed", media.current);
+      }
       const successMessage = `@${user} добавил в плейлист "${video.snippet?.title}"`;
       say(successMessage);
       break;
