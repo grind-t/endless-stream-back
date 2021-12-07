@@ -18,7 +18,7 @@ import { google } from "googleapis";
 const app = express();
 const server = createServer(app);
 const socket = new Server(server);
-const port = 3000;
+const port = 8080;
 const url = new URL(await connect(port));
 
 app.get("/twitch/auth", async (req, res) => {
