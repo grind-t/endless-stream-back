@@ -17,7 +17,7 @@ import { google } from "googleapis";
 
 const app = express();
 const server = createServer(app);
-const io = new Server(server);
+const socket = new Server(server);
 const port = 3000;
 const url = new URL(await connect(port));
 
@@ -141,4 +141,4 @@ async function start() {
   return { twitch, youtube };
 }
 
-export { start };
+export { start, socket };
