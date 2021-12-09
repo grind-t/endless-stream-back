@@ -1,8 +1,13 @@
-import { start, socket } from './server.js'
+import { app, socket, start } from './server.js'
+import twitch from './clients/twitch.js'
+import youtube from './clients/youtube.js'
 import { createInterface } from 'readline'
 import { media } from './data.js'
 
-const { twitch, youtube } = await start()
+await twitch.chat.connect()
+await twitch.events.apply(app)
+await start()
+await twitch.events.markAsReady()
 twitch.chat.say(twitch.channel, 'чупапи муняня')
 
 async function handleMessage(

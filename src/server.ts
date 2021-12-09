@@ -3,23 +3,14 @@ import express from 'express'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 import fetch from 'node-fetch'
-import { readFileSync } from 'fs'
-import { writeFile } from 'fs/promises'
-import {
-  ClientCredentialsAuthProvider,
-  RefreshingAuthProvider,
-} from '@twurple/auth'
 import { connect } from 'ngrok'
-import { EventSubMiddleware } from '@twurple/eventsub'
-import { ApiClient } from '@twurple/api'
-import { ChatClient } from '@twurple/chat'
 import { google } from 'googleapis'
 
 const app = express()
 const server = createServer(app)
 const socket = new Server(server)
 const port = 8080
-const url = new URL(await connect(port))
+const tunnel = new URL(await connect(port))
 
 app.get('/twitch/auth', async (req, res) => {
   const clientId = process.env.TWITCH_CLIENT_ID as string
@@ -71,74 +62,6 @@ app.get('/youtube/auth', async (req, res) => {
   }
 })
 
-function getTwitchClient() {
-  const userId = '149690942'
-  const userName = 'grind_t'
-  const clientId = process.env.TWITCH_CLIENT_ID as string
-  const clientSecret = process.env.TWITCH_CLIENT_SECRET as string
-  const token = JSON.parse(readFileSync('data/twitch-token.json', 'utf-8'))
-  const userAuthProvider = new RefreshingAuthProvider(
-    {
-      clientId,
-      clientSecret,
-      onRefresh: (token) => {
-        const json = JSON.stringify(token, null, 2)
-        writeFile('data/twitch-token.json', json).catch(console.error)
-      },
-    },
-    token
-  )
-  const appAuthProvider = new ClientCredentialsAuthProvider(
-    clientId,
-    clientSecret
-  )
-  const apiClient = new ApiClient({ authProvider: userAuthProvider })
-  const chatClient = new ChatClient({
-    authProvider: userAuthProvider,
-    channels: [userName],
-  })
-  const middleware = new EventSubMiddleware({
-    apiClient: new ApiClient({ authProvider: appAuthProvider }),
-    hostName: url.hostname,
-    pathPrefix: '/twitch/events',
-    secret: process.env.TWITCH_EVENTSUB_SECRET as string,
-  })
-  return {
-    channelId: userId,
-    channel: userName,
-    api: apiClient,
-    chat: chatClient,
-    events: middleware,
-  }
-}
+const start = () => new Promise<void>((resolve) => server.listen(port, resolve))
 
-function getYoutubeClient() {
-  const clientId = process.env.YOUTUBE_CLIENT_ID
-  const clientSecret = process.env.YOUTUBE_CLIENT_SECRET
-  const redirectURI = `http://localhost:${port}/youtube/auth`
-  const token = JSON.parse(readFileSync('data/youtube-token.json', 'utf-8'))
-  const oauth2Client = new google.auth.OAuth2(
-    clientId,
-    clientSecret,
-    redirectURI
-  )
-  oauth2Client.setCredentials(token)
-  oauth2Client.on('tokens', (token) => {
-    const json = JSON.stringify(token, null, 2)
-    writeFile('data/youtube-token.json', json).catch(console.error)
-  })
-  return google.youtube({ version: 'v3', auth: oauth2Client })
-}
-
-async function start() {
-  const twitch = getTwitchClient()
-  const youtube = getYoutubeClient()
-  await twitch.chat.connect()
-  await twitch.events.apply(app)
-  // @ts-ignore
-  await new Promise((resolve) => server.listen(port, resolve))
-  await twitch.events.markAsReady()
-  return { twitch, youtube }
-}
-
-export { start, socket }
+export { app, socket, tunnel, start }
