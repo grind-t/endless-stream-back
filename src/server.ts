@@ -10,7 +10,7 @@ const app = express()
 const server = createServer(app)
 const socket = new Server(server)
 const port = 8080
-const tunnel = new URL(await connect(port))
+let tunnel: URL | undefined
 
 app.get('/twitch/auth', async (req, res) => {
   const clientId = process.env.TWITCH_CLIENT_ID as string
@@ -62,6 +62,14 @@ app.get('/youtube/auth', async (req, res) => {
   }
 })
 
-const start = () => new Promise<void>((resolve) => server.listen(port, resolve))
+async function getTunnel(): Promise<URL> {
+  if (tunnel) return tunnel
+  tunnel = new URL(await connect(port))
+  return tunnel
+}
 
-export { app, socket, tunnel, start }
+async function start(): Promise<void> {
+  return new Promise((resolve) => server.listen(port, resolve))
+}
+
+export { app, socket, getTunnel, start }
