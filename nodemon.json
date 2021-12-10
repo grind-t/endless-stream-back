@@ -1,0 +1,10 @@
+{
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "execMap": {
+    "ts": "node --loader ts-node/esm"
+  },
+  "ext": "js,json,ts",
+  "watch": ["src/"]
+}
