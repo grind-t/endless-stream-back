@@ -2,7 +2,8 @@
   "restartable": false,
   "quiet": true,
   "env": {
-    "NODE_ENV": "development"
+    "NODE_ENV": "development",
+    "TS_NODE_TRANSPILE_ONLY": true
   },
   "execMap": {
     "ts": "node --loader ts-node/esm"
