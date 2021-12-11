@@ -20,7 +20,7 @@ if (platform === 'twitch') {
   await events.markAsReady()
 
   chat.onMessage((_, user, message) => handleMessage(user, message))
-}
+} else await start()
 
 const rl = createInterface({
   input: process.stdin,
