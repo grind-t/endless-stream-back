@@ -6,6 +6,7 @@ import {
 } from './clients/twitch.js'
 import { app, getTunnel, start } from './server.js'
 import { handleMessage } from './events/message.js'
+import { media } from './data/media.js'
 
 const platform = process.argv[2]
 
@@ -37,6 +38,12 @@ rl.on('line', async (line) => {
       await handleMessage('admin', message)
       break
     }
+    case 'media.queue':
+      console.log(media.queue)
+      break
+    case 'media.current':
+      console.log(media.current)
+      break
   }
   rl.prompt()
 })
