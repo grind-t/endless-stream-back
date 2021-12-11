@@ -64,7 +64,7 @@ const mediaCommands: Record<string, Command> = {
     description: 'удалить твое последнее видео из плейлиста',
     cost: 0,
     example: '!плейлист-',
-    handler: function (user) {
+    handler: async function (user) {
       const chat = getChatClient()
       const reqIdx = findLastIndex(media.queue, (req) => req.user === user)
       if (reqIdx !== -1) {
@@ -81,6 +81,40 @@ const mediaCommands: Record<string, Command> = {
       }
       const error = `@${user}, в плейлисте нет твоих видео 🤕`
       return chat.say(error)
+    },
+  },
+  '!скип': {
+    arguments: undefined,
+    description: 'проголосовать за пропуск видео',
+    cost: 0,
+    example: '!скип',
+    handler: async function (user) {
+      const chat = getChatClient()
+      if (!media.current) return
+      media.skipVoters.add(user)
+      let success
+      if (media.skipVoters.size === media.votesToSkip) {
+        success = `"${media.current.videoTitle}" пропущено`
+        media.current = media.queue.shift()
+        media.skipVoters.clear()
+        socket.emit('media/changed', media.current)
+      } else success = `@${user} проголосовал за пропуск видео`
+      return chat.say(success)
+    },
+  },
+  '!видео': {
+    arguments: undefined,
+    description: 'узнать название видео',
+    cost: 0,
+    example: '!видео',
+    handler: async function () {
+      const chat = getChatClient()
+      if (!media.current) {
+        const error = `Сейчас ничего не проигрывается 🤕`
+        return chat.say(error)
+      }
+      const success = `Сейчас проигрывается "${media.current.videoTitle}"`
+      return chat.say(success)
     },
   },
 }
