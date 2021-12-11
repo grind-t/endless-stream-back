@@ -1,6 +1,7 @@
 export interface MediaRequest {
   user: string
   videoId: string
+  videoTitle: string
 }
 
 export interface Media {

@@ -2,6 +2,7 @@ import { media } from '../data/media.js'
 import { getChatClient } from '../clients/main.js'
 import { getApiClient as getYoutubeApi } from '../clients/youtube.js'
 import { socket } from '../server.js'
+import { findLastIndex } from '../utils.js'
 
 type CommandHandler = (user: string, args: string) => Promise<void>
 
@@ -14,8 +15,7 @@ interface Command {
 
 const commands: Record<string, Command> = {
   '!плейлист+': {
-    format:
-      '!плейлист+ (ссылка на ютуб видео) - добавить видео в очередь для воспроизведения',
+    format: '!плейлист+ (ссылка на ютуб видео) - добавить видео в плейлист',
     cost: 0,
     example: '!плейлист+ https://youtu.be/YlKXLGxMvw4',
     handler: async (user, args) => {
@@ -46,12 +46,38 @@ const commands: Record<string, Command> = {
         const error = `@${user}, видео не найдено 🤕`
         return chat.say(error)
       }
-      media.queue.push({ user, videoId })
+      const videoTitle = video.snippet?.title || ''
+      const req = { user, videoId, videoTitle }
+      media.queue.push(req)
       if (!media.current) {
         media.current = media.queue.shift()
         socket.emit('media/changed', media.current)
       }
-      return chat.say(`@${user} добавил в плейлист "${video.snippet?.title}"`)
+      const success = `@${user} добавил в плейлист "${req.videoTitle}"`
+      return chat.say(success)
+    },
+  },
+  '!плейлист-': {
+    format: '!плейлист- - удалить твое последнее видео из плейлиста',
+    cost: 0,
+    example: '!плейлист-',
+    handler: async (user) => {
+      const chat = getChatClient()
+      const reqIdx = findLastIndex(media.queue, (req) => req.user === user)
+      if (reqIdx !== -1) {
+        const req = media.queue.splice(reqIdx, 1)[0]
+        const success = `@${user} удалил из плейлиста "${req.videoTitle}"`
+        return chat.say(success)
+      }
+      if (media.current && media.current.user === user) {
+        const req = media.current
+        media.current = media.queue.shift()
+        socket.emit('media/changed', media.current)
+        const success = `@${user} удалил из плейлиста "${req.videoTitle}"`
+        return chat.say(success)
+      }
+      const error = `@${user}, в плейлисте нет твоих видео 🤕`
+      return chat.say(error)
     },
   },
 }
