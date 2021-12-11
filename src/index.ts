@@ -19,26 +19,26 @@ if (platform === 'twitch') {
   await events.markAsReady()
 
   chat.onMessage((_, user, message) => handleMessage(user, message))
-} else {
-  const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  })
-
-  rl.on('line', async (line) => {
-    const match = line.trim().match(/(\S+)\s*(.*)/)
-    if (!match) return
-    const command = match[1]
-    const args = match[2]
-    switch (command) {
-      case 'event.message': {
-        const message = args
-        await handleMessage('admin', message)
-        break
-      }
-    }
-    rl.prompt()
-  })
-
-  rl.prompt()
 }
+
+const rl = createInterface({
+  input: process.stdin,
+  output: process.stdout,
+})
+
+rl.on('line', async (line) => {
+  const match = line.trim().match(/(\S+)\s*(.*)/)
+  if (!match) return
+  const command = match[1]
+  const args = match[2]
+  switch (command) {
+    case 'event.message': {
+      const message = args
+      await handleMessage('admin', message)
+      break
+    }
+  }
+  rl.prompt()
+})
+
+rl.prompt()
