@@ -7,18 +7,20 @@ import { findLastIndex } from '../utils.js'
 type CommandHandler = (user: string, args: string) => Promise<void>
 
 interface Command {
-  format: string
+  arguments: string[] | undefined
+  description: string
   cost: number
   example: string
   handler: CommandHandler
 }
 
-const commands: Record<string, Command> = {
+const mediaCommands: Record<string, Command> = {
   '!плейлист+': {
-    format: '!плейлист+ (ссылка на ютуб видео) - добавить видео в плейлист',
+    arguments: ['ссылка на ютуб видео'],
+    description: 'добавить видео в плейлист',
     cost: 0,
     example: '!плейлист+ https://youtu.be/YlKXLGxMvw4',
-    handler: async (user, args) => {
+    handler: async function (user, args) {
       const chat = getChatClient()
       if (media.queue.length >= media.maxQueue) {
         const error = `@${user}, плейлист переполнен 🤕`
@@ -58,10 +60,11 @@ const commands: Record<string, Command> = {
     },
   },
   '!плейлист-': {
-    format: '!плейлист- - удалить твое последнее видео из плейлиста',
+    arguments: undefined,
+    description: 'удалить твое последнее видео из плейлиста',
     cost: 0,
     example: '!плейлист-',
-    handler: async (user) => {
+    handler: function (user) {
       const chat = getChatClient()
       const reqIdx = findLastIndex(media.queue, (req) => req.user === user)
       if (reqIdx !== -1) {
@@ -81,6 +84,8 @@ const commands: Record<string, Command> = {
     },
   },
 }
+
+const commands: Record<string, Command> = { ...mediaCommands }
 
 export function handleCommand(user: string, command: string): Promise<void> {
   const match = command.match(/(!\S+)\s*(.*)/)
