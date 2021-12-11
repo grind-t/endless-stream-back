@@ -14,10 +14,8 @@ function getOauth2Client() {
   const token = JSON.parse(readFileSync(tokenPath, 'utf-8'))
   oauth2Client = new google.auth.OAuth2(clientId, clientSecret)
   oauth2Client.setCredentials(token)
-  oauth2Client.on('tokens', (token) => {
-    const json = JSON.stringify(token, null, 2)
-    console.log(`PREV TOKEN: ${JSON.stringify(token)}`)
-    console.log(`NEW TOKEN: ${json}`)
+  oauth2Client.on('tokens', (newToken) => {
+    const json = JSON.stringify(Object.assign(token, newToken), null, 2)
     writeFile(tokenPath, json).catch(console.error)
   })
   return oauth2Client
