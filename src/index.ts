@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { createInterface } from 'readline'
 import {
   getChatClient as getTwitchChatClient,
