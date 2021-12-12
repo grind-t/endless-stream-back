@@ -4,10 +4,11 @@ import {
   getChatClient as getTwitchChatClient,
   getEventSubMiddleware as getTwitchEventSubMiddleware,
 } from './clients/twitch.js'
-import { app, getTunnel, start } from './server.js'
+import { app, getTunnel, socket, start } from './server.js'
 import { handleMessage } from './events/message.js'
 import { media } from './data/media.js'
 import { generateCommandsMarkup } from './utils.js'
+import { handleMediaEnd } from './events/media.js'
 
 const platform = process.argv[2]
 
@@ -22,6 +23,10 @@ if (platform === 'twitch') {
 
   chat.onMessage((_, user, message) => handleMessage(user, message))
 } else await start()
+
+socket.on('connection', (socket) => {
+  socket.on('media/ended', handleMediaEnd)
+})
 
 const rl = createInterface({
   input: process.stdin,
