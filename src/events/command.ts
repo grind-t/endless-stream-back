@@ -98,7 +98,10 @@ export const mediaCommands: Record<string, Command> = {
         media.current = media.queue.shift()
         media.skipVoters.clear()
         socket.emit('media/changed', media.current)
-      } else success = `@${user} проголосовал за пропуск видео`
+      } else {
+        const remaining = media.votesToSkip - media.skipVoters.size
+        success = `@${user} проголосовал за пропуск видео (голосов до пропуска: ${remaining})`
+      }
       return chat.say(success)
     },
   },
