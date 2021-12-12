@@ -26,7 +26,9 @@ export function generateCommandsMarkup(): string {
     markup += `# ${block}\n\n`
     for (const [command, data] of Object.entries(commands)) {
       const args = data.arguments
-      const argsMarkup = args ? ' ' + args.map((v) => `*${v}*`).join(', ') : ''
+      const argsMarkup = args
+        ? ' ' + args.map((v) => `***${v}***`).join(', ')
+        : ''
       markup += `+ **${command}**${argsMarkup} - ${data.description}\n`
       markup += `**Стоимость:** ${data.cost}\n`
       markup += `**Пример:** ${data.example}\n\n`
