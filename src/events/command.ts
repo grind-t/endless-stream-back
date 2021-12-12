@@ -27,7 +27,7 @@ export const mediaCommands: Record<string, Command> = {
         return chat.say(error)
       }
       const userRequests = media.queue.reduce(
-        (acc, req) => (acc + req.user === user ? 1 : 0),
+        (acc, req) => (req.user === user ? acc + 1 : acc),
         0
       )
       if (userRequests >= media.maxUserRequests) {
