@@ -4,9 +4,9 @@ import { getApiClient as getYoutubeApi } from '../clients/youtube.js'
 import { socket } from '../server.js'
 import { findLastIndex } from '../utils.js'
 
-type CommandHandler = (user: string, args: string) => Promise<void>
+export type CommandHandler = (user: string, args: string) => Promise<void>
 
-interface Command {
+export interface Command {
   arguments: string[] | undefined
   description: string
   cost: number
@@ -14,7 +14,7 @@ interface Command {
   handler: CommandHandler
 }
 
-const mediaCommands: Record<string, Command> = {
+export const mediaCommands: Record<string, Command> = {
   '!плейлист+': {
     arguments: ['ссылка на ютуб видео'],
     description: 'добавить видео в плейлист',

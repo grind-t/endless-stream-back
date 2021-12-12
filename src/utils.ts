@@ -1,3 +1,5 @@
+import { mediaCommands } from './events/command.js'
+
 /**
  * Returns the index of the last element in the array where predicate is true, and -1
  * otherwise.
@@ -15,4 +17,20 @@ export function findLastIndex<T>(
     if (predicate(array[l], l, array)) return l
   }
   return -1
+}
+
+export function generateCommandsMarkup(): string {
+  const blocks = { Медиа: mediaCommands }
+  let markup = ''
+  for (const [block, commands] of Object.entries(blocks)) {
+    markup += `# ${block}\n\n`
+    for (const [command, data] of Object.entries(commands)) {
+      const args = data.arguments
+      const argsMarkup = args ? ' ' + args.map((v) => `*${v}*`).join(', ') : ''
+      markup += `+ **${command}**${argsMarkup} - ${data.description}\n`
+      markup += `**Стоимость:** ${data.cost}\n`
+      markup += `**Пример:** ${data.example}\n\n`
+    }
+  }
+  return markup
 }

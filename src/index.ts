@@ -7,6 +7,7 @@ import {
 import { app, getTunnel, start } from './server.js'
 import { handleMessage } from './events/message.js'
 import { media } from './data/media.js'
+import { generateCommandsMarkup } from './utils.js'
 
 const platform = process.argv[2]
 
@@ -43,6 +44,9 @@ rl.on('line', async (line) => {
       break
     case 'media.current':
       console.log(media.current)
+      break
+    case 'commands.markup':
+      console.log(generateCommandsMarkup())
       break
   }
   rl.prompt()
