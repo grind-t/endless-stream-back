@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { createInterface } from 'readline'
 import {
+  channelId as twitchChannelId,
   getChatClient as getTwitchChatClient,
   getEventSubMiddleware as getTwitchEventSubMiddleware,
 } from './clients/twitch.js'
@@ -9,6 +10,8 @@ import { handleMessage } from './events/message.js'
 import { media } from './data/media.js'
 import { generateCommandsMarkup } from './utils.js'
 import { handleMediaEnd } from './events/media.js'
+import { handleFollow } from './events/channel.js'
+import { eventList } from './data/event-list.js'
 
 const platform = process.argv[2]
 
@@ -22,6 +25,9 @@ if (platform === 'twitch') {
   await events.markAsReady()
 
   chat.onMessage((_, user, message) => handleMessage(user, message))
+  events.subscribeToChannelFollowEvents(twitchChannelId, (e) =>
+    handleFollow(e.userDisplayName)
+  )
 } else await start()
 
 socket.on('connection', (socket) => {
@@ -44,11 +50,17 @@ rl.on('line', async (line) => {
       await handleMessage('admin', message)
       break
     }
+    case 'event.follow':
+      handleFollow('admin')
+      break
     case 'media.queue':
       console.log(media.queue)
       break
     case 'media.current':
       console.log(media.current)
+      break
+    case 'eventList.items':
+      console.log(eventList.items)
       break
     case 'commands.markup':
       console.log(generateCommandsMarkup())
