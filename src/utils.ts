@@ -36,3 +36,8 @@ export function generateCommandsMarkup(): string {
   }
   return markup
 }
+
+export function getIdGenerator(): () => number {
+  let id = 0
+  return () => id++
+}

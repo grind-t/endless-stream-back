@@ -1,3 +1,5 @@
+import { getIdGenerator } from '../utils.js'
+
 export enum EventType {
   Follow,
   Sub,
@@ -5,6 +7,7 @@ export enum EventType {
 }
 
 export interface EventListItem {
+  id: number
   user: string
   event: EventType
   payload?: string
@@ -19,3 +22,5 @@ export const eventList: EventList = {
   items: [],
   limit: 3,
 }
+
+export const getEventId = getIdGenerator()
