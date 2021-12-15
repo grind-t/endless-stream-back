@@ -17,7 +17,8 @@ const eventSubSecret = process.env.TWITCH_EVENTSUB_SECRET as string
 
 let userAuthProvider: RefreshingAuthProvider | undefined
 let appAuthProvider: ClientCredentialsAuthProvider | undefined
-let apiClient: ApiClient | undefined
+let userApiClient: ApiClient | undefined
+let appApiClient: ApiClient | undefined
 let chatClient: ChatClient | undefined
 
 function getUserAuthProvider() {
@@ -43,12 +44,18 @@ function getAppAuthProvider() {
   return appAuthProvider
 }
 
-export function getApiClient(): ApiClient {
-  if (apiClient) return apiClient
-  apiClient = new ApiClient({
+export function getUserApiClient(): ApiClient {
+  if (userApiClient) return userApiClient
+  userApiClient = new ApiClient({
     authProvider: getUserAuthProvider(),
   })
-  return apiClient
+  return userApiClient
+}
+
+export function getAppApiClient(): ApiClient {
+  if (appApiClient) return appApiClient
+  appApiClient = new ApiClient({ authProvider: getAppAuthProvider() })
+  return appApiClient
 }
 
 export function getChatClient(): ChatClient {
@@ -65,7 +72,7 @@ export function getEventSubMiddleware(
   pathPrefix: string
 ): EventSubMiddleware {
   return new EventSubMiddleware({
-    apiClient: new ApiClient({ authProvider: getAppAuthProvider() }),
+    apiClient: getAppApiClient(),
     hostName: hostName,
     pathPrefix: pathPrefix,
     secret: eventSubSecret,

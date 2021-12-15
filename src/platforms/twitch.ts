@@ -3,6 +3,7 @@ import { connect } from 'ngrok'
 import { app, port, startServer } from '../server.js'
 import {
   channelId,
+  getAppApiClient,
   getChatClient,
   getEventSubMiddleware,
 } from '../clients/twitch.js'
@@ -11,10 +12,14 @@ import { handleMessage } from '../events/message.js'
 import { handleFollow } from '../events/channel.js'
 
 const tunnel = new URL(await connect(port))
+const api = getAppApiClient()
 const chat = getChatClient()
 const events = getEventSubMiddleware(tunnel.hostname, '/twitch/events')
-await chat.connect()
-await events.apply(app)
+await Promise.all([
+  api.eventSub.deleteAllSubscriptions(),
+  chat.connect(),
+  events.apply(app),
+])
 await startServer()
 await events.markAsReady()
 
