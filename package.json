@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon ./src/index.ts",
+    "dev": "nodemon ./src/platforms/local.ts",
     "build": "tsc",
     "format": "prettier --write src"
   },

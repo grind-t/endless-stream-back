@@ -1,4 +1,7 @@
 import 'dotenv/config'
+process.env.PLATFORM = 'twitch'
+process.env.NODE_ENV = 'production'
+
 import { connect } from 'ngrok'
 import { app, port, startServer } from '../server.js'
 import {

@@ -7,7 +7,7 @@ export interface ChatClient {
   say(message: string): Promise<void>
 }
 
-const platform = process.argv[2]
+const platform = process.env.PLATFORM
 let chatClient: ChatClient | undefined
 
 export function getChatClient(): ChatClient {
