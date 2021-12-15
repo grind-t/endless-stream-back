@@ -5,8 +5,8 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node --loader ts-node/esm ./src/index.ts twitch",
-    "dev": "nodemon ./src/index.ts local",
+    "dev": "nodemon ./src/index.ts",
+    "build": "tsc",
     "format": "prettier --write src"
   },
   "repository": {

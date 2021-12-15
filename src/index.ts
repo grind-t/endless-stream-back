@@ -1,22 +1,27 @@
 import 'dotenv/config'
+import express from 'express'
 import { createInterface } from 'readline'
 import {
   channelId as twitchChannelId,
   getChatClient as getTwitchChatClient,
   getEventSubMiddleware as getTwitchEventSubMiddleware,
 } from './clients/twitch.js'
-import { app, getTunnel, socket, start } from './server.js'
+import { app, port, socket, start } from './server.js'
 import { handleMessage } from './events/message.js'
 import { media } from './data/media.js'
 import { generateCommandsMarkup } from './utils.js'
 import { handleMediaEnd } from './events/media.js'
 import { handleFollow } from './events/channel.js'
 import { eventList } from './data/event-list.js'
+import { connect } from 'ngrok'
 
-const platform = process.argv[2]
+const platform = process.argv.at(2)
+const assetsPath = process.argv.at(3)
+
+if (assetsPath) app.use(express.static(assetsPath))
 
 if (platform === 'twitch') {
-  const tunnel = await getTunnel()
+  const tunnel = new URL(await connect(port))
   const chat = getTwitchChatClient()
   const events = getTwitchEventSubMiddleware(tunnel.hostname, '/twitch/events')
   await chat.connect()
