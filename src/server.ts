@@ -3,12 +3,16 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 import fetch from 'node-fetch'
 import { google } from 'googleapis'
+import { handleMediaEnd } from './events/media.js'
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 const app = express()
 const server = createServer(app)
 const socket = new Server(server)
 const port = isDevelopment ? 8080 : 80
+const assetsPath = process.argv.at(2)
+
+if (assetsPath) app.use(express.static(assetsPath))
 
 if (isDevelopment) {
   app.get('/twitch/auth', async (req, res) => {
@@ -62,8 +66,12 @@ if (isDevelopment) {
   })
 }
 
-function start(): Promise<void> {
+socket.on('connection', (socket) => {
+  socket.on('media/ended', handleMediaEnd)
+})
+
+function startServer(): Promise<void> {
   return new Promise((resolve) => server.listen(port, resolve))
 }
 
-export { app, port, socket, start }
+export { app, socket, port, startServer }
