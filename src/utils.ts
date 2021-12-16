@@ -1,4 +1,4 @@
-import { mediaCommands } from './events/command.js'
+import { mediaCommands } from './events/chat.js'
 
 /**
  * Returns the index of the last element in the array where predicate is true, and -1

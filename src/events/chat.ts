@@ -1,7 +1,7 @@
 import { media } from '../data/media.js'
-import { getChatClient } from '../clients/main.js'
-import { getApiClient as getYoutubeApi } from '../clients/youtube.js'
-import { socket } from '../server.js'
+import { getAppChat } from '../clients/app.js'
+import { getYoutubeApi } from '../clients/youtube.js'
+import { getIO } from '../server.js'
 import { findLastIndex } from '../utils.js'
 
 export type CommandHandler = (user: string, args: string) => Promise<void>
@@ -21,7 +21,8 @@ export const mediaCommands: Record<string, Command> = {
     cost: 0,
     example: '!плейлист+ https://youtu.be/YlKXLGxMvw4',
     handler: async function (user, args) {
-      const chat = getChatClient()
+      const io = getIO()
+      const chat = getAppChat()
       if (media.queue.length >= media.maxQueue) {
         const error = `@${user}, плейлист переполнен 🤕`
         return chat.say(error)
@@ -53,7 +54,7 @@ export const mediaCommands: Record<string, Command> = {
       media.queue.push(req)
       if (!media.current) {
         media.current = media.queue.shift()
-        socket.emit('media/changed', media.current)
+        io.emit('media/changed', media.current)
       }
       const success = `@${user} добавил в плейлист "${req.videoTitle}"`
       return chat.say(success)
@@ -65,7 +66,8 @@ export const mediaCommands: Record<string, Command> = {
     cost: 0,
     example: '!плейлист-',
     handler: async function (user) {
-      const chat = getChatClient()
+      const io = getIO()
+      const chat = getAppChat()
       const reqIdx = findLastIndex(media.queue, (req) => req.user === user)
       if (reqIdx !== -1) {
         const req = media.queue.splice(reqIdx, 1)[0]
@@ -75,7 +77,7 @@ export const mediaCommands: Record<string, Command> = {
       if (media.current && media.current.user === user) {
         const req = media.current
         media.current = media.queue.shift()
-        socket.emit('media/changed', media.current)
+        io.emit('media/changed', media.current)
         const success = `@${user} удалил из плейлиста "${req.videoTitle}"`
         return chat.say(success)
       }
@@ -89,7 +91,8 @@ export const mediaCommands: Record<string, Command> = {
     cost: 0,
     example: '!скип',
     handler: async function (user) {
-      const chat = getChatClient()
+      const io = getIO()
+      const chat = getAppChat()
       if (!media.current) return
       media.skipVoters.add(user)
       let success
@@ -97,7 +100,7 @@ export const mediaCommands: Record<string, Command> = {
         success = `"${media.current.videoTitle}" пропущено`
         media.current = media.queue.shift()
         media.skipVoters.clear()
-        socket.emit('media/changed', media.current)
+        io.emit('media/changed', media.current)
       } else {
         const remaining = media.votesToSkip - media.skipVoters.size
         success = `@${user} проголосовал за пропуск видео (голосов до пропуска: ${remaining})`
@@ -111,7 +114,7 @@ export const mediaCommands: Record<string, Command> = {
     cost: 0,
     example: '!видео',
     handler: async function () {
-      const chat = getChatClient()
+      const chat = getAppChat()
       if (!media.current) {
         const error = `Сейчас ничего не проигрывается 🤕`
         return chat.say(error)
@@ -131,4 +134,9 @@ export function handleCommand(user: string, command: string): Promise<void> {
   const args = match[2]
   if (!commands[name]) return Promise.resolve()
   return commands[name].handler(user, args)
+}
+
+export function handleMessage(user: string, message: string): Promise<void> {
+  if (message[0] === '!') return handleCommand(user, message)
+  return Promise.resolve()
 }

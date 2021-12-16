@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "nodemon ./src/platforms/local.ts",
+    "dev": "nodemon ./src/apps/local.ts",
     "build": "tsc",
     "format": "prettier --write src"
   },

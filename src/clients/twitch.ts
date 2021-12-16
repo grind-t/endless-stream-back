@@ -8,23 +8,23 @@ import { ApiClient } from '@twurple/api'
 import { ChatClient } from '@twurple/chat'
 import { EventSubMiddleware } from '@twurple/eventsub'
 
-export const channelId = '149690942'
-export const channel = 'grind_t'
+const channelId = '149690942'
+const channel = 'grind_t'
 const tokenPath = 'data/twitch-token.json'
 const clientId = process.env.TWITCH_CLIENT_ID as string
 const clientSecret = process.env.TWITCH_CLIENT_SECRET as string
 const eventSubSecret = process.env.TWITCH_EVENTSUB_SECRET as string
 
-let userAuthProvider: RefreshingAuthProvider | undefined
-let appAuthProvider: ClientCredentialsAuthProvider | undefined
-let userApiClient: ApiClient | undefined
-let appApiClient: ApiClient | undefined
-let chatClient: ChatClient | undefined
+let userAuth: RefreshingAuthProvider | undefined
+let appAuth: ClientCredentialsAuthProvider | undefined
+let userApi: ApiClient | undefined
+let appApi: ApiClient | undefined
+let chat: ChatClient | undefined
 
-function getUserAuthProvider() {
-  if (userAuthProvider) return userAuthProvider
+function getUserAuth() {
+  if (userAuth) return userAuth
   const token = JSON.parse(readFileSync(tokenPath, 'utf-8'))
-  userAuthProvider = new RefreshingAuthProvider(
+  userAuth = new RefreshingAuthProvider(
     {
       clientId,
       clientSecret,
@@ -35,44 +35,46 @@ function getUserAuthProvider() {
     },
     token
   )
-  return userAuthProvider
+  return userAuth
 }
 
-function getAppAuthProvider() {
-  if (appAuthProvider) return appAuthProvider
-  appAuthProvider = new ClientCredentialsAuthProvider(clientId, clientSecret)
-  return appAuthProvider
+function getAppAuth() {
+  if (appAuth) return appAuth
+  appAuth = new ClientCredentialsAuthProvider(clientId, clientSecret)
+  return appAuth
 }
 
-export function getUserApiClient(): ApiClient {
-  if (userApiClient) return userApiClient
-  userApiClient = new ApiClient({
-    authProvider: getUserAuthProvider(),
-  })
-  return userApiClient
+export function getTwitchApi(auth: 'user' | 'app'): ApiClient {
+  if (auth === 'user') {
+    if (userApi) return userApi
+    userApi = new ApiClient({ authProvider: getUserAuth() })
+    return userApi
+  } else {
+    if (appApi) return appApi
+    appApi = new ApiClient({ authProvider: getAppAuth() })
+    return appApi
+  }
 }
 
-export function getAppApiClient(): ApiClient {
-  if (appApiClient) return appApiClient
-  appApiClient = new ApiClient({ authProvider: getAppAuthProvider() })
-  return appApiClient
-}
-
-export function getChatClient(): ChatClient {
-  if (chatClient) return chatClient
-  chatClient = new ChatClient({
-    authProvider: getUserAuthProvider(),
+export function getTwitchChat(): ChatClient {
+  if (chat) return chat
+  chat = new ChatClient({
+    authProvider: getUserAuth(),
     channels: [channel],
   })
-  return chatClient
+  return chat
 }
 
-export function getEventSubMiddleware(
+export function getTwitchChannel() {
+  return { id: channelId, name: channel }
+}
+
+export function getTwitchEventsMiddleware(
   hostName: string,
   pathPrefix: string
 ): EventSubMiddleware {
   return new EventSubMiddleware({
-    apiClient: getAppApiClient(),
+    apiClient: getTwitchApi('app'),
     hostName: hostName,
     pathPrefix: pathPrefix,
     secret: eventSubSecret,

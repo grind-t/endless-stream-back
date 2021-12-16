@@ -1,4 +1,4 @@
-import { socket } from '../server.js'
+import { getIO } from '../server.js'
 import {
   eventList,
   EventListItem,
@@ -7,6 +7,7 @@ import {
 } from '../data/event-list.js'
 
 export function handleFollow(user: string) {
+  const io = getIO()
   const item: EventListItem = {
     id: getEventId(),
     user,
@@ -14,5 +15,5 @@ export function handleFollow(user: string) {
   }
   eventList.items.push(item)
   if (eventList.items.length > eventList.limit) eventList.items.shift()
-  socket.emit('event-list/changed', eventList.items)
+  io.emit('event-list/changed', eventList.items)
 }
