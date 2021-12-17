@@ -1,5 +1,5 @@
 import { media } from '../data/media.js'
-import { getAppChat } from '../clients/app.js'
+import { getChat } from '../clients/app.js'
 import { getYoutubeApi } from '../clients/youtube.js'
 import { getIO } from '../server.js'
 import { findLastIndex } from '../utils.js'
@@ -22,7 +22,7 @@ export const mediaCommands: Record<string, Command> = {
     example: '!плейлист+ https://youtu.be/YlKXLGxMvw4',
     handler: async function (user, args) {
       const io = getIO()
-      const chat = getAppChat()
+      const chat = getChat()
       if (media.queue.length >= media.maxQueue) {
         const error = `@${user}, плейлист переполнен 🤕`
         return chat.say(error)
@@ -67,7 +67,7 @@ export const mediaCommands: Record<string, Command> = {
     example: '!плейлист-',
     handler: async function (user) {
       const io = getIO()
-      const chat = getAppChat()
+      const chat = getChat()
       const reqIdx = findLastIndex(media.queue, (req) => req.user === user)
       if (reqIdx !== -1) {
         const req = media.queue.splice(reqIdx, 1)[0]
@@ -92,7 +92,7 @@ export const mediaCommands: Record<string, Command> = {
     example: '!скип',
     handler: async function (user) {
       const io = getIO()
-      const chat = getAppChat()
+      const chat = getChat()
       if (!media.current) return
       media.skipVoters.add(user)
       let success
@@ -114,7 +114,7 @@ export const mediaCommands: Record<string, Command> = {
     cost: 0,
     example: '!видео',
     handler: async function () {
-      const chat = getAppChat()
+      const chat = getChat()
       if (!media.current) {
         const error = `Сейчас ничего не проигрывается 🤕`
         return chat.say(error)

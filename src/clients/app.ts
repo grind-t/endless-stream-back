@@ -1,15 +1,13 @@
 import { env } from 'process'
 import { getTwitchChat, getTwitchChannel } from './twitch.js'
 
-export interface Api {}
-
 export interface Chat {
   say(message: string): Promise<void>
 }
 
 let chat: Chat | undefined
 
-export function getAppChat(): Chat {
+export function getChat(): Chat {
   if (chat) return chat
   const platform = env.PLATFORM
   if (platform === 'twitch') {
