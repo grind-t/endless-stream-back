@@ -11,6 +11,7 @@ export interface Media {
   current: MediaRequest | undefined
   votesToSkip: number
   skipVoters: Set<string>
+  idle: MediaRequest
 }
 
 export const media: Media = {
@@ -20,4 +21,9 @@ export const media: Media = {
   current: undefined,
   votesToSkip: 2,
   skipVoters: new Set(),
+  idle: {
+    user: '',
+    videoId: 'StC5hQTgxUk',
+    videoTitle: 'Ожидание команды',
+  },
 }
