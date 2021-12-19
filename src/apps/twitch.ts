@@ -11,7 +11,7 @@ import {
   getTwitchEventsMiddleware,
 } from '../clients/twitch.js'
 import { handleConnection } from '../events/socket.js'
-import { handleMessage } from '../events/chat.js'
+import { handleJoin, handleMessage } from '../events/chat.js'
 import { handleFollow } from '../events/channel.js'
 
 env.PLATFORM = 'twitch'
@@ -37,6 +37,11 @@ await events.markAsReady()
 
 io.on('connection', handleConnection)
 chat.onMessage((_, user, message) => handleMessage(user, message))
+chat.onJoin((_, user) => {
+  console.log(user)
+  if (user === channel.name) return
+  handleJoin(user)
+})
 events.subscribeToChannelFollowEvents(channel.id, (e) =>
   handleFollow(e.userDisplayName)
 )

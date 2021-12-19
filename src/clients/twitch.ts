@@ -61,6 +61,7 @@ export function getTwitchChat(): ChatClient {
   chat = new ChatClient({
     authProvider: getUserAuth(),
     channels: [channel],
+    requestMembershipEvents: true,
   })
   return chat
 }

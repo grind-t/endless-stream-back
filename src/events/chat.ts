@@ -140,3 +140,9 @@ export function handleMessage(user: string, message: string): Promise<void> {
   if (message[0] === '!') return handleCommand(user, message)
   return Promise.resolve()
 }
+
+export function handleJoin(user: string): Promise<void> {
+  const chat = getChat()
+  const m = `@${user}, привет, команды для управления стримом можно найти в описании`
+  return chat.say(m)
+}
