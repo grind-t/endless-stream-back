@@ -38,8 +38,8 @@ await events.markAsReady()
 io.on('connection', handleConnection)
 chat.onMessage((_, user, message) => handleMessage(user, message))
 chat.onJoin((_, user) => {
-  console.log(user)
   if (user === channel.name) return
+  console.log(user)
   handleJoin(user)
 })
 events.subscribeToChannelFollowEvents(channel.id, (e) =>
