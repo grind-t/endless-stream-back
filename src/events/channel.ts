@@ -13,7 +13,7 @@ export function handleFollow(user: string) {
     user,
     event: EventType.Follow,
   }
-  eventList.items.push(item)
-  if (eventList.items.length > eventList.limit) eventList.items.shift()
+  eventList.items.unshift(item)
+  if (eventList.items.length > eventList.limit) eventList.items.pop()
   io.emit('event-list/changed', eventList.items)
 }
