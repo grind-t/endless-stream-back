@@ -52,7 +52,7 @@ export const mediaCommands: Record<string, Command> = {
       const videoTitle = video.snippet?.title || ''
       const req = { user, videoId, videoTitle }
       media.queue.push(req)
-      if (!media.current) {
+      if (!media.current || media.idlePlaylist.includes(media.current)) {
         media.current = media.queue.shift()
         io.emit('media/changed', media.current)
       }
