@@ -1,3 +1,4 @@
+import { shuffle } from '../utils.js'
 import { User, getBroadcaster } from '../clients/app.js'
 
 export interface MediaRequest {
@@ -14,6 +15,7 @@ export interface Media {
   votesToSkip: number
   skipVoters: Set<string>
   idlePlaylist: MediaRequest[]
+  idlePlaylistIdx: number
 }
 
 const idlePlaylist: MediaRequest[] = [
@@ -65,5 +67,6 @@ export const media: Media = {
   current: undefined,
   votesToSkip: 2,
   skipVoters: new Set(),
-  idlePlaylist,
+  idlePlaylist: shuffle(idlePlaylist),
+  idlePlaylistIdx: 0,
 }
