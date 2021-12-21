@@ -18,7 +18,6 @@ export interface Media {
 
 const idlePlaylist: MediaRequest[] = [
   ['ql9TiOhGx0s', 'А мой мальчик едет на девятке [Right version]'],
-  ['c9JNp6kdKqU', 'Gorillaz - Feel good inc. (Gachi mix)'],
   ['VFzF-l6gz-o', 'Pain - Shut your mouth (Gachi mix)'],
   ['yukHZvo5mnw', 'CUMпитал (Капитал gachi mix)'],
   ['dQ2YIQThBd8', 'Мэйби Бэйби - Бла бла (Right version)'],
@@ -29,8 +28,6 @@ const idlePlaylist: MediaRequest[] = [
   ['G9XEsvX7dw0', 'DVRST - Close Eyes (Right version)'],
   ['7IA_wO2rFpY', 'KATY PERRY - F.U.'],
   ['SiFLjGRIRfo', 'fem.love - фотографирую закат【RIGHT VERSION】'],
-  ['-PiKqkhyIXM', 'Нурминский - Валим (right version)'],
-  ['nsE6Q0PNsKA', 'Макс Корж - Мотылек(♂right version♂)'],
   ['gw7yUMtlB1w', 'fem.love - 1000-7 【RIGHT VERSION】'],
   ['H9qT4nGh2Rw', 'THUCTION (Imagine Dragons - Thunder Right Version)'],
   ['k7enNNU9j80', 'LIZER - Пачка сигарет (Right version)'],
@@ -39,7 +36,6 @@ const idlePlaylist: MediaRequest[] = [
   ['Z3ERRPfgprQ', 'Inna - Cola song (Gachi mix)'],
   ['VZIWReHgOmE', '♂️ЛЮБ♂️Э - ПРОРВЁМСЯ! ОПЕРА'],
   ['4sdByTVVsYA', 'Oxxxymiron - Город под подошвой ♂【RIGHT VERSION】'],
-  ['IDJn-sCLa1I', 'Нурминский - Зашумел Район (right version♂)'],
   ['0vbjTjWkIzo', 'Макс Корж - Малый повзрослел (Right Version)'],
   ['ZTMXStS7Pas', 'SLAVA MARLOW & MORGENSHTERN - Быстро (Right Version)'],
   ['vS1ZDcVWfSY', 'Slava Marlow - Снова Я Напиваюсь (Right Version)'],
