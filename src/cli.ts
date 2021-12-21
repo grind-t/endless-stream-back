@@ -4,6 +4,7 @@ import { handleFollow } from './events/channel.js'
 import { media } from './data/media.js'
 import { eventList } from './data/event-list.js'
 import { generateCommandsMarkup } from './utils.js'
+import { getBroadcaster } from './clients/app.js'
 
 export function getCLI(): Interface {
   const rl = createInterface({
@@ -19,7 +20,7 @@ export function getCLI(): Interface {
     switch (command) {
       case 'event.message': {
         const message = args
-        await handleMessage('admin', message)
+        await handleMessage(getBroadcaster(), message)
         break
       }
       case 'event.follow':

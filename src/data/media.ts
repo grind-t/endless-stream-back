@@ -1,5 +1,7 @@
+import { User, getBroadcaster } from '../clients/app.js'
+
 export interface MediaRequest {
-  user: string
+  user: User
   videoId: string
   videoTitle: string
 }
@@ -22,7 +24,7 @@ export const media: Media = {
   votesToSkip: 2,
   skipVoters: new Set(),
   idle: {
-    user: '',
+    user: getBroadcaster(),
     videoId: 'StC5hQTgxUk',
     videoTitle: 'Ожидание команды',
   },

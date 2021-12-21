@@ -13,6 +13,7 @@ import {
 import { handleConnection } from '../events/socket.js'
 import { handleJoin, handleMessage } from '../events/chat.js'
 import { handleFollow } from '../events/channel.js'
+import { User, UserRole } from '../clients/app.js'
 
 env.PLATFORM = 'twitch'
 
@@ -36,12 +37,26 @@ await startServer(port)
 await events.markAsReady()
 
 io.on('connection', handleConnection)
-chat.onMessage((_, user, message) => handleMessage(user, message))
+
+chat.onMessage((_channel, userName, message, { userInfo }) => {
+  const user: User = {
+    id: userInfo.userId,
+    name: userName,
+    role:
+      (userInfo.isBroadcaster && UserRole.Caster) ||
+      (userInfo.isMod && UserRole.Mod) ||
+      (userInfo.isSubscriber && UserRole.Sub) ||
+      UserRole.Regular,
+  }
+  handleMessage(user, message)
+})
+
 chat.onJoin((_, user) => {
   if (user === channel.name) return
   console.log(user)
   handleJoin(user)
 })
+
 events.subscribeToChannelFollowEvents(channel.id, (e) =>
   handleFollow(e.userDisplayName)
 )
