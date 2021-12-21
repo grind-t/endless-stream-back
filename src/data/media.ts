@@ -57,7 +57,7 @@ const idlePlaylist: MediaRequest[] = [
 ].map(([id, title]) => ({
   user: getBroadcaster(),
   videoId: id,
-  videoTitle: `Плейлист ожидания (${title})`,
+  videoTitle: `Плейлист ожидания: ${title}`,
 }))
 
 export const media: Media = {
