@@ -3,6 +3,7 @@ import { User, getChat } from '../clients/app.js'
 import { getYoutubeApi } from '../clients/youtube.js'
 import { getIO } from '../server.js'
 import { findLastIndex } from '../utils.js'
+import { handleMediaEnd } from './media.js'
 
 export type CommandHandler = (user: User, args: string) => Promise<void>
 
@@ -66,7 +67,6 @@ export const mediaCommands: Record<string, Command> = {
     cost: 0,
     example: '!плейлист-',
     handler: async function (user) {
-      const io = getIO()
       const chat = getChat()
       const reqIdx = findLastIndex(
         media.queue,
@@ -78,10 +78,8 @@ export const mediaCommands: Record<string, Command> = {
         return chat.say(success)
       }
       if (media.current && media.current.user.id === user.id) {
-        const req = media.current
-        media.current = media.queue.shift()
-        io.emit('media/changed', media.current)
-        const success = `@${user.name} удалил из плейлиста "${req.videoTitle}"`
+        const success = `@${user.name} удалил из плейлиста "${media.current.videoTitle}"`
+        handleMediaEnd()
         return chat.say(success)
       }
       const error = `@${user.name}, в плейлисте нет твоих видео 🤕`
@@ -94,16 +92,14 @@ export const mediaCommands: Record<string, Command> = {
     cost: 0,
     example: '!скип',
     handler: async function (user) {
-      const io = getIO()
       const chat = getChat()
       if (!media.current) return
       media.skipVoters.add(user.id)
       let success
       if (media.skipVoters.size === media.votesToSkip) {
         success = `"${media.current.videoTitle}" пропущено`
-        media.current = media.queue.shift()
         media.skipVoters.clear()
-        io.emit('media/changed', media.current)
+        handleMediaEnd()
       } else {
         const remaining = media.votesToSkip - media.skipVoters.size
         success = `@${user.name} проголосовал за пропуск видео (голосов до пропуска: ${remaining})`
