@@ -167,7 +167,7 @@ export const commands: Record<string, Command> = {
         'Очень сомнительно',
       ]
       const reply = replies[Math.floor(Math.random() * replies.length)]
-      return chat.say(`@${user}, ${reply}`)
+      return chat.say(`@${user.name}, ${reply}`)
     },
   },
 }
