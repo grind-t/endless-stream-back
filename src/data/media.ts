@@ -54,6 +54,10 @@ const idlePlaylist: MediaRequest[] = [
   ['6qM8HkIwoAs', 'Three Days Grace - Animal I Have Become (Right Version)'],
   ['nnmmou6morw', 'Смысловые галлюцинации - Вечно молодой (right version)'],
   ['RIQFvrlR2wM', 'Паровозик Трейни (Right Version)'],
+  ['_Bq3dOhPwNw', 'Глад Валакас - Пароль 1488 (54D AUDIO)'],
+  ['EwfSP6vo-Vg', 'Глад Валакас Пароль 1488 (Imanbek remix)'],
+  ['l44I10VOVTM', 'НЕГРА ХОРОНИЛИ ВАЛАКАС ФИТАНУЛ С ПЕНИСОМ'],
+  ['x0pOVtBXAv4', '♂ Firewatch Palace - Loan Digger ♂'],
 ].map(([id, title]) => ({
   user: getBroadcaster(),
   videoId: id,
