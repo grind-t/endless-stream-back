@@ -2,10 +2,10 @@ import { env } from 'process'
 import { getTwitchChat, getTwitchChannel } from './twitch.js'
 
 export enum UserRole {
-  Regular,
-  Sub,
-  Mod,
-  Caster,
+  Viewer,
+  Subscriber,
+  Moderator,
+  Broadcaster,
 }
 
 export interface User {
@@ -62,6 +62,6 @@ export function getChannel(): Channel {
 export function getBroadcaster(): User {
   if (caster) return caster
   const channel = getChannel()
-  caster = { id: channel.id, name: channel.name, role: UserRole.Caster }
+  caster = { id: channel.id, name: channel.name, role: UserRole.Broadcaster }
   return caster
 }

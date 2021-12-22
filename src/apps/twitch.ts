@@ -43,10 +43,10 @@ chat.onMessage((_channel, userName, message, { userInfo }) => {
     id: userInfo.userId,
     name: userName,
     role:
-      (userInfo.isBroadcaster && UserRole.Caster) ||
-      (userInfo.isMod && UserRole.Mod) ||
-      (userInfo.isSubscriber && UserRole.Sub) ||
-      UserRole.Regular,
+      (userInfo.isBroadcaster && UserRole.Broadcaster) ||
+      (userInfo.isMod && UserRole.Moderator) ||
+      (userInfo.isSubscriber && UserRole.Subscriber) ||
+      UserRole.Viewer,
   }
   handleMessage(user, message)
 })
