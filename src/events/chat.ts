@@ -16,7 +16,7 @@ export interface Command {
   handler: CommandHandler
 }
 
-export const mediaCommands: Record<string, Command> = {
+export const commands: Record<string, Command> = {
   '!плейлист+': {
     arguments: ['ссылка на ютуб видео'],
     description: 'добавить видео в плейлист',
@@ -137,9 +137,40 @@ export const mediaCommands: Record<string, Command> = {
       return chat.say(success)
     },
   },
+  '!8шар': {
+    description: 'задать вопрос магическому шару',
+    cost: 0,
+    role: UserRole.Viewer,
+    example: '!8шар Богдан существует?',
+    async handler(user) {
+      const chat = getChat()
+      const replies = [
+        'Бесспорно',
+        'Это предрешено',
+        'Без сомнения',
+        'Определенно да',
+        'Можешь быть уверен в этом',
+        'Мне кажется - да',
+        'Вероятнее всего',
+        'Перспективы хорошие',
+        'Знаки указывают на положительный ответ',
+        'Да',
+        'Ответ затуманен, попробуй еще раз',
+        'Спроси позже',
+        'Лучше тебе не рассказывать',
+        'Сейчас нельзя предсказать',
+        'Сконцентрируйся и спроси снова',
+        'Даже не думай',
+        'Мой ответ - нет',
+        'По моим источникам - нет',
+        'Перспективы не очень хорошие',
+        'Очень сомнительно',
+      ]
+      const reply = replies[Math.floor(Math.random() * replies.length)]
+      return chat.say(`@${user}, ${reply}`)
+    },
+  },
 }
-
-const commands: Record<string, Command> = { ...mediaCommands }
 
 export function handleCommand(user: User, command: string): Promise<void> {
   const match = command.match(/(!\S+)\s*(.*)/)
