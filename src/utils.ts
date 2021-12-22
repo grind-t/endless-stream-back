@@ -1,4 +1,4 @@
-import { mediaCommands } from './events/chat.js'
+import { commands } from './events/chat.js'
 
 /**
  * Returns the index of the last element in the array where predicate is true, and -1
@@ -20,19 +20,16 @@ export function findLastIndex<T>(
 }
 
 export function generateCommandsMarkup(): string {
-  const blocks = { Медиа: mediaCommands }
   let markup = ''
-  for (const [block, commands] of Object.entries(blocks)) {
-    markup += `# ${block}\n\n`
-    for (const [command, data] of Object.entries(commands)) {
-      const args = data.arguments
-      const argsMarkup = args
-        ? ' ' + args.map((v) => `***${v}***`).join(', ')
-        : ''
-      markup += `+ **${command}**${argsMarkup} - ${data.description}\n`
-      markup += `**Стоимость:** ${data.cost}\n`
-      markup += `**Пример:** ${data.example}\n\n`
-    }
+  const roles = ['зритель', 'подписчик', 'модератор', 'стример']
+  for (const [command, data] of Object.entries(commands)) {
+    const args = data.arguments
+      ? ' ' + data.arguments.map((v) => `***${v}***`).join(', ')
+      : ''
+    markup += `+ **${command}**${args} - ${data.description}\n`
+    markup += `**Стоимость:** ${data.cost}\n`
+    markup += `**Доступ:** ${roles[data.role]}\n`
+    markup += `**Пример:** ${data.example}\n\n`
   }
   return markup
 }
