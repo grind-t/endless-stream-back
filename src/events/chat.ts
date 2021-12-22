@@ -1,5 +1,5 @@
 import { media } from '../data/media.js'
-import { User, getChat } from '../clients/app.js'
+import { User, getChat, UserRole } from '../clients/app.js'
 import { getYoutubeApi } from '../clients/youtube.js'
 import { getIO } from '../server.js'
 import { findLastIndex } from '../utils.js'
@@ -8,9 +8,10 @@ import { handleMediaEnd } from './media.js'
 export type CommandHandler = (user: User, args: string) => Promise<void>
 
 export interface Command {
-  arguments: string[] | undefined
+  arguments?: string[]
   description: string
   cost: number
+  role: UserRole
   example: string
   handler: CommandHandler
 }
@@ -20,8 +21,9 @@ export const mediaCommands: Record<string, Command> = {
     arguments: ['ссылка на ютуб видео'],
     description: 'добавить видео в плейлист',
     cost: 0,
+    role: UserRole.Viewer,
     example: '!плейлист+ https://youtu.be/YlKXLGxMvw4',
-    handler: async function (user, args) {
+    async handler(user, args) {
       const io = getIO()
       const chat = getChat()
       if (media.queue.length >= media.maxQueue) {
@@ -62,11 +64,11 @@ export const mediaCommands: Record<string, Command> = {
     },
   },
   '!плейлист-': {
-    arguments: undefined,
     description: 'удалить твое последнее видео из плейлиста',
     cost: 0,
+    role: UserRole.Viewer,
     example: '!плейлист-',
-    handler: async function (user) {
+    async handler(user) {
       const chat = getChat()
       const reqIdx = findLastIndex(
         media.queue,
@@ -87,11 +89,11 @@ export const mediaCommands: Record<string, Command> = {
     },
   },
   '!скип': {
-    arguments: undefined,
     description: 'проголосовать за пропуск видео',
     cost: 0,
+    role: UserRole.Viewer,
     example: '!скип',
-    handler: async function (user) {
+    async handler(user) {
       const chat = getChat()
       if (!media.current) return
       media.skipVoters.add(user.id)
@@ -107,12 +109,25 @@ export const mediaCommands: Record<string, Command> = {
       return chat.say(success)
     },
   },
+  '!вето': {
+    description: 'пропустить видео',
+    cost: 0,
+    role: UserRole.Moderator,
+    example: '!вето',
+    async handler(user) {
+      if (!media.current || user.role < this.role) return
+      const chat = getChat()
+      const success = `"${media.current.videoTitle}" пропущено`
+      handleMediaEnd()
+      return chat.say(success)
+    },
+  },
   '!видео': {
-    arguments: undefined,
     description: 'узнать название видео',
     cost: 0,
+    role: UserRole.Viewer,
     example: '!видео',
-    handler: async function () {
+    async handler() {
       const chat = getChat()
       if (!media.current) {
         const error = `Сейчас ничего не проигрывается 🤕`
