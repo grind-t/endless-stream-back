@@ -91,7 +91,7 @@ export const commands: Record<string, Command> = {
     },
   },
   '!медиа-': {
-    description: 'удалить твой последний заказ',
+    description: 'удалить свой последний заказ',
     cost: 0,
     role: UserRole.Viewer,
     example: '!медиа-',
@@ -114,7 +114,7 @@ export const commands: Record<string, Command> = {
     description: 'узнать название текущего видео или плейлиста',
     cost: 0,
     role: UserRole.Viewer,
-    example: '!видео',
+    example: '!медиа',
     async handler() {
       const chat = getChat()
       if (!mediaShare.queue.length) {
