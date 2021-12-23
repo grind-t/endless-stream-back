@@ -1,7 +1,7 @@
 import { createInterface, Interface } from 'readline'
 import { handleMessage } from './events/chat.js'
 import { handleFollow } from './events/channel.js'
-import { media } from './data/media.js'
+import { mediaShare } from './data/media-share.js'
 import { eventList } from './data/event-list.js'
 import { generateCommandsMarkup } from './utils.js'
 import { getBroadcaster } from './clients/app.js'
@@ -26,11 +26,8 @@ export function getCLI(): Interface {
       case 'event.follow':
         handleFollow('admin')
         break
-      case 'media.queue':
-        console.log(media.queue)
-        break
-      case 'media.current':
-        console.log(media.current)
+      case 'mediaShare.queue':
+        console.log(mediaShare.queue)
         break
       case 'eventList.items':
         console.log(eventList.items)

@@ -1,4 +1,4 @@
-import { media } from '../data/media.js'
+import { mediaShare, Media, MediaType } from '../data/media-share.js'
 import { User, getChat, UserRole } from '../clients/app.js'
 import { getYoutubeApi } from '../clients/youtube.js'
 import { getIO } from '../server.js'
@@ -17,131 +17,157 @@ export interface Command {
 }
 
 export const commands: Record<string, Command> = {
-  '!плейлист+': {
-    arguments: ['ссылка на ютуб видео'],
-    description: 'добавить видео в плейлист',
+  '!медиа+': {
+    arguments: ['ссылка на ютуб видео или плейлист'],
+    description: 'заказать видео или плейлист',
     cost: 0,
     role: UserRole.Viewer,
-    example: '!плейлист+ https://youtu.be/YlKXLGxMvw4',
+    example: '!медиа+ https://youtu.be/YlKXLGxMvw4',
     async handler(user, args) {
       const io = getIO()
       const chat = getChat()
-      if (media.queue.length >= media.maxQueue) {
-        const error = `@${user.name}, плейлист переполнен 🤕`
+      if (mediaShare.queue.length >= mediaShare.maxQueue) {
+        const error = `@${user.name}, очередь переполнена 🤕`
         return chat.say(error)
       }
-      const userRequests = media.queue.reduce(
+      const userRequests = mediaShare.queue.reduce(
         (acc, req) => (req.user.id === user.id ? acc + 1 : acc),
         0
       )
-      if (userRequests >= media.maxUserRequests) {
-        const error = `@${user.name}, можно заказать максимум ${media.maxUserRequests} видео 🤕`
+      if (userRequests >= mediaShare.maxUserRequests) {
+        const error = `@${user.name}, превышен лимит заказов (${mediaShare.maxUserRequests}) 🤕`
         return chat.say(error)
       }
-      const videoId = args.match(/(.*?)(^|\/|v=)([a-z0-9_-]{11})(.*)?/i)?.at(3)
-      if (!videoId) {
+      let mediaId: string | null | undefined
+      let mediaType: MediaType
+      try {
+        const url = new URL(args)
+        const lastSegment = url.pathname.split('/').at(-1)
+        if (lastSegment === 'playlist') {
+          mediaId = url.searchParams.get('list')
+          mediaType = MediaType.Playlist
+        } else {
+          mediaId = url.searchParams.get('v') || lastSegment
+          mediaType = MediaType.Video
+        }
+      } catch {
+        mediaId = args
+        mediaType = mediaId.length === 11 ? MediaType.Video : MediaType.Playlist
+      }
+      if (!mediaId) {
         const error = `@${user.name}, непонятная ссылка 🤕`
         return chat.say(error)
       }
+      let media: Media | undefined
       const youtube = getYoutubeApi()
-      const video = await youtube.videos
-        .list({ id: [videoId], part: ['snippet', 'statistics'] })
-        .then((r) => r.data.items?.at(0))
-        .catch(console.error)
-      if (!video) {
-        const error = `@${user.name}, видео не найдено 🤕`
+      if (mediaType === MediaType.Video) {
+        const video = await youtube.videos
+          .list({ id: [mediaId], part: ['snippet'] })
+          .then((r) => r.data.items?.at(0))
+          .catch(console.error)
+        if (video && video.snippet) {
+          const mediaTitle = video.snippet.title || ''
+          media = { id: mediaId, title: mediaTitle, type: mediaType }
+        }
+      } else {
+        const playlist = await youtube.playlists
+          .list({ id: [mediaId], part: ['snippet'] })
+          .then((r) => r.data.items?.at(0))
+          .catch(console.error)
+        if (playlist && playlist.snippet) {
+          const mediaTitle = playlist.snippet.title || ''
+          media = { id: mediaId, title: mediaTitle, type: mediaType }
+        }
+      }
+      if (!media) {
+        const error = `@${user.name}, видео или плейлист не найден 🤕`
         return chat.say(error)
       }
-      const videoTitle = video.snippet?.title || ''
-      const req = { user, videoId, videoTitle }
-      media.queue.push(req)
-      if (!media.current || media.idlePlaylist.includes(media.current)) {
-        media.current = media.queue.shift()
-        io.emit('media/changed', media.current)
-      }
-      const success = `@${user.name} добавил в плейлист "${req.videoTitle}"`
+      const req = { user, media }
+      const newLen = mediaShare.queue.push(req)
+      if (newLen === 1) io.emit('media/changed', media)
+      const success = `@${user.name} добавил в очередь "${media.title}"`
       return chat.say(success)
     },
   },
-  '!плейлист-': {
-    description: 'удалить твое последнее видео из плейлиста',
+  '!медиа-': {
+    description: 'удалить твой последний заказ',
     cost: 0,
     role: UserRole.Viewer,
-    example: '!плейлист-',
+    example: '!медиа-',
     async handler(user) {
       const chat = getChat()
-      const reqIdx = findLastIndex(
-        media.queue,
-        (req) => req.user.id === user.id
-      )
-      if (reqIdx !== -1) {
-        const req = media.queue.splice(reqIdx, 1)[0]
-        const success = `@${user.name} удалил из плейлиста "${req.videoTitle}"`
-        return chat.say(success)
+      const queue = mediaShare.queue
+      const reqIdx = findLastIndex(queue, (req) => req.user.id === user.id)
+      if (reqIdx === -1) {
+        const error = `@${user.name}, в очереди нет твоих заказов 🤕`
+        return chat.say(error)
       }
-      if (media.current && media.current.user.id === user.id) {
-        const success = `@${user.name} удалил из плейлиста "${media.current.videoTitle}"`
-        handleMediaEnd()
-        return chat.say(success)
-      }
-      const error = `@${user.name}, в плейлисте нет твоих видео 🤕`
-      return chat.say(error)
-    },
-  },
-  '!скип': {
-    description: 'проголосовать за пропуск видео',
-    cost: 0,
-    role: UserRole.Viewer,
-    example: '!скип',
-    async handler(user) {
-      const chat = getChat()
-      if (!media.current) return
-      media.skipVoters.add(user.id)
-      let success
-      if (media.skipVoters.size === media.votesToSkip) {
-        success = `"${media.current.videoTitle}" пропущено`
-        media.skipVoters.clear()
-        handleMediaEnd()
-      } else {
-        const remaining = media.votesToSkip - media.skipVoters.size
-        success = `@${user.name} проголосовал за пропуск видео (голосов до пропуска: ${remaining})`
-      }
+      const media = queue[reqIdx].media
+      if (reqIdx === 0) handleMediaEnd()
+      else queue.splice(reqIdx, 1)
+      const success = `@${user.name} удалил из очереди "${media.title}"`
       return chat.say(success)
     },
   },
-  '!вето': {
-    description: 'пропустить видео',
-    cost: 0,
-    role: UserRole.Moderator,
-    example: '!вето',
-    async handler(user) {
-      if (!media.current || user.role < this.role) return
-      const chat = getChat()
-      const success = `"${media.current.videoTitle}" пропущено`
-      handleMediaEnd()
-      return chat.say(success)
-    },
-  },
-  '!видео': {
-    description: 'узнать название видео',
+  '!медиа': {
+    description: 'узнать название текущего видео или плейлиста',
     cost: 0,
     role: UserRole.Viewer,
     example: '!видео',
     async handler() {
       const chat = getChat()
-      if (!media.current) {
+      if (!mediaShare.queue.length) {
         const error = `Сейчас ничего не проигрывается 🤕`
         return chat.say(error)
       }
-      const success = `Сейчас проигрывается "${media.current.videoTitle}"`
+      const media = mediaShare.queue[0].media
+      const success = `Сейчас проигрывается "${media.title}"`
       return chat.say(success)
     },
   },
-  '!8шар': {
-    description: 'задать вопрос магическому шару',
+  '!скип': {
+    description: 'проголосовать за пропуск текущего видео или плейлиста',
     cost: 0,
     role: UserRole.Viewer,
-    example: '!8шар Богдан существует?',
+    example: '!скип',
+    async handler(user) {
+      const chat = getChat()
+      if (!mediaShare.queue.length) {
+        const error = `Сейчас ничего не проигрывается 🤕`
+        return chat.say(error)
+      }
+      const media = mediaShare.queue[0].media
+      mediaShare.skipVoters.add(user.id)
+      if (mediaShare.skipVoters.size === mediaShare.votesToSkip) {
+        handleMediaEnd()
+        const success = `"${media.title}" пропущено`
+        return chat.say(success)
+      }
+      const remaining = mediaShare.votesToSkip - mediaShare.skipVoters.size
+      const success = `@${user.name} проголосовал за пропуск "${media.title}" (голосов до пропуска: ${remaining})`
+      return chat.say(success)
+    },
+  },
+  '!вето': {
+    description: 'пропустить текущее видео или плейлист',
+    cost: 0,
+    role: UserRole.Moderator,
+    example: '!вето',
+    async handler(user) {
+      if (!mediaShare.queue.length || user.role < this.role) return
+      const chat = getChat()
+      const media = mediaShare.queue[0].media
+      handleMediaEnd()
+      const success = `"${media.title}" пропущено`
+      return chat.say(success)
+    },
+  },
+  '!шары': {
+    description: 'задать вопрос магическим шарам',
+    cost: 0,
+    role: UserRole.Viewer,
+    example: '!шары Дядя Богдан существует?',
     async handler(user) {
       const chat = getChat()
       const replies = [
