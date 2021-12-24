@@ -196,6 +196,17 @@ export const commands: Record<string, Command> = {
       return chat.say(`@${user.name}, ${reply}`)
     },
   },
+  '!команды': {
+    description: 'узнать, где можно найти список всех команд',
+    cost: 0,
+    role: UserRole.Viewer,
+    example: '!команды',
+    async handler() {
+      const chat = getChat()
+      const m = 'Список всех команд находится в описании стрима'
+      return chat.say(m)
+    },
+  },
 }
 
 export function handleCommand(user: User, command: string): Promise<void> {
@@ -213,7 +224,8 @@ export function handleMessage(user: User, message: string): Promise<void> {
 }
 
 export function handleJoin(user: string): Promise<void> {
-  const chat = getChat()
-  const m = `@${user}, привет, команды для управления стримом можно найти в описании`
-  return chat.say(m)
+  //const chat = getChat()
+  //const m = `@${user}, привет, команды для управления стримом можно найти в описании`
+  //return chat.say(m)
+  return Promise.resolve()
 }
