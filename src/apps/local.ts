@@ -2,7 +2,6 @@ import 'dotenv/config'
 import { env } from 'process'
 import { getApp, getIO, startServer } from '../server.js'
 import { getCLI } from '../cli.js'
-import fetch from 'node-fetch'
 import { google } from 'googleapis'
 import { handleConnection } from '../events/socket.js'
 

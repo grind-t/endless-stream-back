@@ -1,9 +1,0 @@
-{
-  "restartable": false,
-  "quiet": true,
-  "execMap": {
-    "ts": "node --loader ts-node/esm"
-  },
-  "ext": "js,json,ts",
-  "watch": ["src/"]
-}

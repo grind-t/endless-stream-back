@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "nodemon ./src/apps/local.ts",
+    "dev": "tsx watch --clear-screen=false ./src/apps/local.ts",
     "build": "tsc",
     "format": "prettier --write src"
   },
@@ -19,23 +19,21 @@
   },
   "homepage": "https://github.com/grind-t/endless-stream-back#readme",
   "dependencies": {
-    "@twurple/api": "^5.0.10",
-    "@twurple/auth": "^5.0.10",
-    "@twurple/chat": "^5.0.10",
-    "@twurple/eventsub": "^5.0.10",
-    "dotenv": "^10.0.0",
-    "express": "^5.0.0-alpha.8",
-    "googleapis": "^92.0.0",
-    "ngrok": "^4.2.2",
-    "node-fetch": "^3.1.0",
-    "socket.io": "^4.4.0"
+    "@twurple/api": "^5.2.7",
+    "@twurple/auth": "^5.2.7",
+    "@twurple/chat": "^5.2.7",
+    "@twurple/eventsub": "^5.2.7",
+    "dotenv": "^16.0.3",
+    "express": "^5.0.0-beta.1",
+    "googleapis": "^109.0.1",
+    "ngrok": "^4.3.3",
+    "socket.io": "^4.5.4"
   },
   "devDependencies": {
-    "@types/express": "^4.17.13",
-    "@types/node": "^16.11.11",
-    "nodemon": "^2.0.15",
-    "prettier": "^2.5.1",
-    "ts-node": "^10.4.0",
-    "typescript": "^4.5.2"
+    "@types/express": "^4.17.14",
+    "@types/node": "^18.11.13",
+    "prettier": "^2.8.1",
+    "tsx": "^3.12.1",
+    "typescript": "^4.9.4"
   }
 }

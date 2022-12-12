@@ -1,9 +1,5 @@
 {
   "include": ["src/**/*"],
-  "ts-node": {
-    "transpileOnly": true,
-    "files": true
-  },
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
@@ -31,7 +27,7 @@
     /* Modules */
     "module": "ESNext",
     "rootDir": "src",
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "baseUrl": "./src",
     // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
