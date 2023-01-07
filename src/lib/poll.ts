@@ -1,4 +1,4 @@
-import { User } from '../clients/app.js'
+import { User } from 'apps/generic'
 
 export interface Vote {
   user: User

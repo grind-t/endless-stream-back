@@ -1,11 +1,13 @@
 import { Socket } from 'socket.io'
-import { getIO } from '../server.js'
-import { handleMediaEnd } from './media.js'
-import { mediaShare } from '../data/media-share.js'
+import { handleMediaEnd } from './media'
+import { App } from 'apps/generic'
 
-export function handleConnection(socket: Socket): void {
+export function handleConnection(
+  { mediaShare, io }: App,
+  socket: Socket
+): void {
   socket.on('media/ended', handleMediaEnd)
   const { queue, idleMedia } = mediaShare
   const media = queue.length ? queue[0].media : idleMedia
-  getIO().emit('media/changed', media)
+  io.emit('media/changed', media)
 }

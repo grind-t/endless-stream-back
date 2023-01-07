@@ -1,4 +1,4 @@
-import { getIdGenerator } from '../utils.js'
+import { getIdGenerator } from 'lib/utils'
 
 export enum EventType {
   Follow,
@@ -13,14 +13,14 @@ export interface EventListItem {
   payload?: string
 }
 
-export interface EventList {
+export const getEventId = getIdGenerator()
+
+export class EventList {
   items: EventListItem[]
   limit: number
-}
 
-export const eventList: EventList = {
-  items: [],
-  limit: 3,
+  constructor(limit: number) {
+    this.items = []
+    this.limit = limit
+  }
 }
-
-export const getEventId = getIdGenerator()

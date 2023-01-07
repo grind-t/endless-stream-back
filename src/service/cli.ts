@@ -1,12 +1,10 @@
 import { createInterface, Interface } from 'readline'
-import { handleMessage } from './events/chat.js'
-import { handleFollow } from './events/channel.js'
-import { mediaShare } from './data/media-share.js'
-import { eventList } from './data/event-list.js'
-import { generateCommandsMarkup } from './utils.js'
-import { getBroadcaster } from './clients/app.js'
+import { handleMessage } from 'events/chat'
+import { handleFollow } from 'events/channel'
+import { generateCommandsMarkup } from 'lib/utils'
+import { App } from 'apps/generic'
 
-export function getCLI(): Interface {
+export function getCLI(app: App): Interface {
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -20,17 +18,17 @@ export function getCLI(): Interface {
     switch (command) {
       case 'event.message': {
         const message = args
-        await handleMessage(getBroadcaster(), message)
+        await handleMessage(app, app.broadcaster, message)
         break
       }
       case 'event.follow':
-        handleFollow('admin')
+        handleFollow(app, 'admin')
         break
-      case 'mediaShare.queue':
-        console.log(mediaShare.queue)
+      case 'app.mediaShare':
+        console.log(app.mediaShare)
         break
-      case 'eventList.items':
-        console.log(eventList.items)
+      case 'app.eventList':
+        console.log(app.eventList)
         break
       case 'commands.markup':
         console.log(generateCommandsMarkup())

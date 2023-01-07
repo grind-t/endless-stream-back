@@ -1,19 +1,13 @@
-import { getIO } from '../server.js'
-import {
-  eventList,
-  EventListItem,
-  EventType,
-  getEventId,
-} from '../data/event-list.js'
+import { EventType, getEventId } from 'lib/event-list'
+import { App } from 'apps/generic'
 
-export function handleFollow(user: string) {
-  const io = getIO()
-  const item: EventListItem = {
-    id: getEventId(),
-    user,
-    event: EventType.Follow,
+export function handleFollow({ eventList, io }: App, user: string) {
+  if (eventList.items.length < eventList.limit) {
+    eventList.items.unshift({
+      id: getEventId(),
+      user,
+      event: EventType.Follow,
+    })
+    io.emit('event-list/changed', eventList.items)
   }
-  eventList.items.unshift(item)
-  if (eventList.items.length > eventList.limit) eventList.items.pop()
-  io.emit('event-list/changed', eventList.items)
 }

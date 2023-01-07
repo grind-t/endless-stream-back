@@ -1,11 +1,14 @@
-import { mediaShare, Media, MediaType } from '../data/media-share.js'
-import { User, getChat, UserRole } from '../clients/app.js'
-import { getYoutubeApi } from '../clients/youtube.js'
-import { getIO } from '../server.js'
-import { findLastIndex } from '../utils.js'
-import { handleMediaEnd } from './media.js'
+import { Media, MediaType } from 'lib/media-share'
+import { getYoutubeApi } from 'service/youtube'
+import { findLastIndex } from 'lib/utils'
+import { handleMediaEnd } from './media'
+import { App, User, UserRole } from 'apps/generic'
 
-export type CommandHandler = (user: User, args: string) => Promise<void>
+export type CommandHandler = (
+  app: App,
+  user: User,
+  args: string
+) => Promise<void>
 
 export interface Command {
   arguments?: string[]
@@ -23,10 +26,8 @@ export const commands: Record<string, Command> = {
     cost: 0,
     role: UserRole.Viewer,
     example: '!медиа+ https://youtu.be/YlKXLGxMvw4',
-    async handler(user, args) {
-      const io = getIO()
-      const chat = getChat()
-      if (mediaShare.queue.length >= mediaShare.maxQueue) {
+    async handler({ mediaShare, chat, io }, user, args) {
+      if (mediaShare.queue.length >= mediaShare.queueLimit) {
         const error = `@${user.name}, очередь переполнена 🤕`
         return chat.say(error)
       }
@@ -34,8 +35,8 @@ export const commands: Record<string, Command> = {
         (acc, req) => (req.user.id === user.id ? acc + 1 : acc),
         0
       )
-      if (userRequests >= mediaShare.maxUserRequests) {
-        const error = `@${user.name}, превышен лимит заказов (${mediaShare.maxUserRequests}) 🤕`
+      if (userRequests >= mediaShare.maxRequestsPerUser) {
+        const error = `@${user.name}, превышен лимит заказов (${mediaShare.maxRequestsPerUser}) 🤕`
         return chat.say(error)
       }
       let mediaId: string | null | undefined
@@ -95,16 +96,16 @@ export const commands: Record<string, Command> = {
     cost: 0,
     role: UserRole.Viewer,
     example: '!медиа-',
-    async handler(user) {
-      const chat = getChat()
-      const queue = mediaShare.queue
+    async handler(app, user) {
+      const { mediaShare, chat } = app
+      const { queue } = mediaShare
       const reqIdx = findLastIndex(queue, (req) => req.user.id === user.id)
       if (reqIdx === -1) {
         const error = `@${user.name}, в очереди нет твоих заказов 🤕`
         return chat.say(error)
       }
       const media = queue[reqIdx].media
-      if (reqIdx === 0) handleMediaEnd()
+      if (reqIdx === 0) handleMediaEnd(app)
       else queue.splice(reqIdx, 1)
       const success = `@${user.name} удалил из очереди "${media.title}"`
       return chat.say(success)
@@ -115,8 +116,7 @@ export const commands: Record<string, Command> = {
     cost: 0,
     role: UserRole.Viewer,
     example: '!медиа',
-    async handler() {
-      const chat = getChat()
+    async handler({ mediaShare, chat }) {
       if (!mediaShare.queue.length) {
         const error = `Сейчас ничего не проигрывается 🤕`
         return chat.say(error)
@@ -131,20 +131,20 @@ export const commands: Record<string, Command> = {
     cost: 0,
     role: UserRole.Viewer,
     example: '!скип',
-    async handler(user) {
-      const chat = getChat()
+    async handler(app, user) {
+      const { mediaShare, chat } = app
       if (!mediaShare.queue.length) {
         const error = `Сейчас ничего не проигрывается 🤕`
         return chat.say(error)
       }
       const media = mediaShare.queue[0].media
       mediaShare.skipVoters.add(user.id)
-      if (mediaShare.skipVoters.size === mediaShare.votesToSkip) {
-        handleMediaEnd()
+      if (mediaShare.skipVoters.size >= mediaShare.minVotesToSkip) {
+        handleMediaEnd(app)
         const success = `"${media.title}" пропущено`
         return chat.say(success)
       }
-      const remaining = mediaShare.votesToSkip - mediaShare.skipVoters.size
+      const remaining = mediaShare.minVotesToSkip - mediaShare.skipVoters.size
       const success = `@${user.name} проголосовал за пропуск "${media.title}" (голосов до пропуска: ${remaining})`
       return chat.say(success)
     },
@@ -154,11 +154,11 @@ export const commands: Record<string, Command> = {
     cost: 0,
     role: UserRole.Moderator,
     example: '!вето',
-    async handler(user) {
+    async handler(app, user) {
+      const { mediaShare, chat } = app
       if (!mediaShare.queue.length || user.role < this.role) return
-      const chat = getChat()
       const media = mediaShare.queue[0].media
-      handleMediaEnd()
+      handleMediaEnd(app)
       const success = `"${media.title}" пропущено`
       return chat.say(success)
     },
@@ -168,8 +168,7 @@ export const commands: Record<string, Command> = {
     cost: 0,
     role: UserRole.Viewer,
     example: '!шары Дядя Богдан существует?',
-    async handler(user) {
-      const chat = getChat()
+    async handler({ chat }, user) {
       const replies = [
         'Бесспорно',
         'Это предрешено',
@@ -201,25 +200,32 @@ export const commands: Record<string, Command> = {
     cost: 0,
     role: UserRole.Viewer,
     example: '!команды',
-    async handler() {
-      const chat = getChat()
+    async handler({ chat }) {
       const m = 'Список всех команд находится в описании стрима'
       return chat.say(m)
     },
   },
 }
 
-export function handleCommand(user: User, command: string): Promise<void> {
+export function handleCommand(
+  app: App,
+  user: User,
+  command: string
+): Promise<void> {
   const match = command.match(/(!\S+)\s*(.*)/)
   if (!match) return Promise.resolve()
   const name = match[1]
   const args = match[2]
   if (!commands[name]) return Promise.resolve()
-  return commands[name].handler(user, args)
+  return commands[name].handler(app, user, args)
 }
 
-export function handleMessage(user: User, message: string): Promise<void> {
-  if (message[0] === '!') return handleCommand(user, message)
+export function handleMessage(
+  app: App,
+  user: User,
+  message: string
+): Promise<void> {
+  if (message[0] === '!') return handleCommand(app, user, message)
   return Promise.resolve()
 }
 

@@ -4,9 +4,10 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --clear-screen=false ./src/apps/local.ts",
+    "dev": "vite-node --watch ./src/apps/local.ts",
     "build": "tsc",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "test": "vitest"
   },
   "repository": {
     "type": "git",
@@ -34,6 +35,9 @@
     "@types/node": "^18.11.13",
     "prettier": "^2.8.1",
     "tsx": "^3.12.1",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.4",
+    "vite-node": "^0.26.3",
+    "vite-tsconfig-paths": "^4.0.3",
+    "vitest": "^0.26.3"
   }
 }

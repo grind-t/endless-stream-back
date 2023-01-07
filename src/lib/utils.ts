@@ -1,4 +1,4 @@
-import { commands } from './events/chat.js'
+import { commands } from 'events/chat'
 
 export function generateCommandsMarkup(): string {
   let markup = ''

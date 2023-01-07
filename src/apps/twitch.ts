@@ -1,44 +1,63 @@
 import 'dotenv/config'
-import { env } from 'process'
-import { getApp, getIO, startServer } from '../server.js'
-import { getCLI } from '../cli.js'
 import express from 'express'
 import { connect } from 'ngrok'
 import {
   getTwitchApi,
   getTwitchChat,
-  getTwitchChannel,
   getTwitchEventsMiddleware,
-} from '../clients/twitch.js'
-import { handleConnection } from '../events/socket.js'
-import { handleJoin, handleMessage } from '../events/chat.js'
-import { handleFollow } from '../events/channel.js'
-import { User, UserRole } from '../clients/app.js'
+  getTwitchAppAuth,
+  getTwitchChannelAuth,
+  twitchChannel,
+} from 'service/twitch'
+import { handleConnection } from 'events/socket'
+import { handleJoin, handleMessage } from 'events/chat'
+import { handleFollow } from 'events/channel'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
+import { App, User, UserRole } from 'apps/generic'
+import { EventList } from 'lib/event-list'
+import { MediaShare } from 'lib/media-share'
+import { getCLI } from 'service/cli'
 
-env.PLATFORM = 'twitch'
-
-const app = getApp()
-const io = getIO()
-const cli = getCLI()
 const port = 80
+
+const expressApp = express()
+const server = createServer(expressApp)
+const io = new Server(server)
 const tunnel = new URL(await connect(port))
-const assetsPath = process.argv.at(2)
-const api = getTwitchApi('app')
-const chat = getTwitchChat()
-const channel = getTwitchChannel()
-const events = getTwitchEventsMiddleware(tunnel.hostname, '/twitch/events')
+const twitchChannelAuth = await getTwitchChannelAuth()
+const twitchAppAuth = getTwitchAppAuth()
+const twitchChat = getTwitchChat(twitchChannelAuth)
+const twitchApi = getTwitchApi(twitchAppAuth)
+const twitchEvents = getTwitchEventsMiddleware(
+  twitchApi,
+  tunnel.hostname,
+  '/twitch/events'
+)
+const app = {
+  broadcaster: {
+    id: twitchChannel.id,
+    name: twitchChannel.name,
+    role: UserRole.Broadcaster,
+  },
+  eventList: new EventList(3),
+  mediaShare: new MediaShare(100, 1, 2),
+  chat: {
+    say: (message) => twitchChat.say(twitchChannel.name, message),
+  },
+  io,
+} satisfies App
+const cli = getCLI(app)
 
-if (assetsPath) app.use(express.static(assetsPath))
+await twitchApi.eventSub.deleteAllSubscriptions()
+await twitchChat.connect()
+await twitchEvents.apply(expressApp)
+await new Promise((resolve) => server.listen(port, <() => void>resolve))
+await twitchEvents.markAsReady()
 
-await api.eventSub.deleteAllSubscriptions()
-await chat.connect()
-await events.apply(app)
-await startServer(port)
-await events.markAsReady()
+io.on('connection', (socket) => handleConnection(app, socket))
 
-io.on('connection', handleConnection)
-
-chat.onMessage((_channel, userName, message, { userInfo }) => {
+twitchChat.onMessage((_channel, userName, message, { userInfo }) => {
   const user: User = {
     id: userInfo.userId,
     name: userName,
@@ -48,17 +67,17 @@ chat.onMessage((_channel, userName, message, { userInfo }) => {
       (userInfo.isSubscriber && UserRole.Subscriber) ||
       UserRole.Viewer,
   }
-  handleMessage(user, message)
+  handleMessage(app, user, message)
 })
 
-chat.onJoin((_, user) => {
-  if (user === channel.name) return
+twitchChat.onJoin((_, user) => {
+  if (user === twitchChannel.name) return
   console.log(user)
   handleJoin(user)
 })
 
-events.subscribeToChannelFollowEvents(channel.id, (e) =>
-  handleFollow(e.userDisplayName)
+twitchEvents.subscribeToChannelFollowEvents(twitchChannel.id, (e) =>
+  handleFollow(app, e.userDisplayName)
 )
 
 cli.prompt()

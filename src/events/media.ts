@@ -1,10 +1,9 @@
-import { getIO } from '../server.js'
-import { mediaShare } from '../data/media-share.js'
+import { App } from 'apps/generic'
 
-export function handleMediaEnd(): void {
+export function handleMediaEnd({ mediaShare, io }: App): void {
   const { queue, skipVoters, idleMedia } = mediaShare
   queue.shift()
   skipVoters.clear()
   const media = queue.length ? queue[0].media : idleMedia
-  getIO().emit('media/changed', media)
+  io.emit('media/changed', media)
 }
